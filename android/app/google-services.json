@@ -1,0 +1,40 @@
+{
+    "project_info": {
+      "project_number": "381945464572",
+      "firebase_url": "https://water-remainder-492b7.firebaseio.com",
+      "project_id": "water-remainder-492b7",
+      "storage_bucket": "water-remainder-492b7.appspot.com"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:381945464572:android:4cbc8506d0fc86f58c3979",
+          "android_client_info": {
+            "package_name": "com.example.water_recommender"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "381945464572-27704fdmjlbm7kqvr4bsdf76afb67391.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyDHOWB1rlInvxlsKSD8j7ytrdpJRArORZo"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "381945464572-27704fdmjlbm7kqvr4bsdf76afb67391.apps.googleusercontent.com",
+                "client_type": 3
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
