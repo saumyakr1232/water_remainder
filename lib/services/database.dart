@@ -26,7 +26,7 @@ class DatabaseService {
         .document(uid)
         .collection("dailyData")
         .document("today")
-        .setData({
+        .updateData({
       "todayIntakes": FieldValue.arrayUnion([waterIntake.toJson()])
     }).catchError((e) => print(e));
   }
@@ -36,7 +36,7 @@ class DatabaseService {
         .document(uid)
         .collection("waterData")
         .document('all')
-        .setData({
+        .updateData({
       'waterData': FieldValue.arrayUnion([waterData.toJson()])
     }).catchError((e) => print(e));
   }
@@ -46,17 +46,26 @@ class DatabaseService {
       uid: uid,
       goal: snapshot.data['goal'],
       name: snapshot.data['name'],
-      todayIntakes: snapshot.data['todayIntakes'],
-      waterIntakeData: snapshot.data['waterIntakeData'],
     );
   }
 
-  WaterIntake _dailyDataFromSnapshot(DocumentSnapshot snapshot) {
-    return WaterIntake.fromJson(snapshot.data);
+  List<WaterIntake> _dailyDataFromSnapshot(DocumentSnapshot snapshot) {
+    List<WaterIntake> intakes = [];
+    for (Map<dynamic, dynamic> map in snapshot.data['todayIntakes']) {
+      print(map);
+      intakes.add(WaterIntake.fromJson(map));
+    }
+
+    return intakes;
   }
 
-  WaterData _waterDataFromSnapshot(DocumentSnapshot snapshot) {
-    return WaterData.fromJson(snapshot.data);
+  List<WaterData> _waterDataFromSnapshot(DocumentSnapshot snapshot) {
+    List<WaterData> waterData = [];
+
+    for (Map<dynamic, dynamic> map in snapshot.data['waterData']) {
+      waterData.add(WaterData.fromJson(map));
+    }
+    return waterData;
   }
 
   //get UserData stream
@@ -69,7 +78,7 @@ class DatabaseService {
 
   //get Dalily Data strem
 
-  Stream<WaterIntake> get dailyIntake {
+  Stream<List<WaterIntake>> get dailyIntake {
     return userDataCollections
         .document(uid)
         .collection("dailyData")
@@ -78,7 +87,7 @@ class DatabaseService {
         .map(_dailyDataFromSnapshot);
   }
 
-  Stream<WaterData> get waterData {
+  Stream<List<WaterData>> get waterData {
     return userDataCollections
         .document(uid)
         .collection("waterData")
@@ -86,4 +95,16 @@ class DatabaseService {
         .snapshots()
         .map(_waterDataFromSnapshot);
   }
+
+  // void test() async {
+  //   userDataCollections
+  //     ..document(uid)
+  //         .collection("dailyData")
+  //         .document('today')
+  //         .get()
+  //         .then((value) {
+  //       print(value.data);
+  //     });
+  // }
+
 }

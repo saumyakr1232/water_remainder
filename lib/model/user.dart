@@ -1,4 +1,3 @@
-import 'package:water_recommender/model/waterIntake.dart';
 
 class User {
   final String uid;
@@ -10,16 +9,13 @@ class User {
 class UserData {
   final String uid;
   final String name;
-  final double goal;
-  final List<WaterIntake> todayIntakes;
-  final List<WaterData> waterIntakeData;
+  final int goal;
 
   UserData(
       {this.uid,
       this.name,
       this.goal,
-      this.todayIntakes,
-      this.waterIntakeData});
+      });
 
-  
+
 }

@@ -58,6 +58,7 @@ class _SignInState extends State<SignIn> {
                         validator: (val) =>
                             val.isEmpty ? 'Enter an Email' : null,
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                         onChanged: (val) {
                           setState(() {
                             email = val;
@@ -74,6 +75,7 @@ class _SignInState extends State<SignIn> {
                         obscureText: true,
                         decoration:
                             textInputDecoration.copyWith(hintText: "Password"),
+                        textInputAction: TextInputAction.done,
                         onChanged: (val) {
                           setState(() {
                             password = val;

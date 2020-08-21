@@ -2,7 +2,7 @@ import 'dart:convert';
 
 
 class WaterIntake {
-  final double amount;
+  final int amount;
   final String time;
 
   WaterIntake({this.amount, this.time});
@@ -17,7 +17,7 @@ class WaterIntake {
   factory WaterIntake.fromJson(Map<String, dynamic> map) {
     // final map = jsonDecode(json) as Map<String, dynamic>;
     return WaterIntake(
-        amount: map['amount'] as double, time: map['time'] as String);
+        amount: map['amount'] as int, time: map['time'] as String);
   }
 
   String json() {
@@ -55,4 +55,6 @@ class WaterData {
         isGoalAchieved: map['isGoalAchieved']as bool);
   }
 }
+
+
 
