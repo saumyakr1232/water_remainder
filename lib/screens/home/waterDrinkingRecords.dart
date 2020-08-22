@@ -9,15 +9,22 @@ import 'package:water_recommender/model/waterIntake.dart';
 import 'package:water_recommender/services/database.dart';
 
 class DrinkingRecord extends StatelessWidget {
+  final List<WaterIntake> intakes;
+  DrinkingRecord({this.intakes});
   @override
   Widget build(BuildContext context) {
-    return WaterRecordPage();
+    return WaterRecordPage(
+      intakes: intakes,
+    );
   }
 }
 
 class WaterRecordPage extends StatefulWidget {
+  final List<WaterIntake> intakes;
+  WaterRecordPage({this.intakes});
   @override
-  _WaterRecordPageState createState() => _WaterRecordPageState();
+  _WaterRecordPageState createState() =>
+      _WaterRecordPageState(intakes: intakes);
 }
 
 class _WaterRecordPageState extends State<WaterRecordPage> {
@@ -26,6 +33,10 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
   bool isScrollStarted = false;
   bool isScrollOnStart = true;
   ScrollController _controller;
+  List<bool> _selectedForEdit = [];
+
+  List<WaterIntake> intakes;
+  _WaterRecordPageState({this.intakes});
 
   @override
   void initState() {
@@ -59,7 +70,7 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
   @override
   Widget build(BuildContext context) {
     final User user = Provider.of<User>(context);
-
+    int sizeOfIntakesList = intakes.length;
     return MultiProvider(
       providers: [
         StreamProvider.value(
@@ -80,34 +91,66 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
                 isScrollOnStart ? Colors.transparent : Colors.indigo.shade400,
             elevation: 0.0,
             title: Text(
-              "Drink Water",
+              "Today's data",
               style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 24.0),
             ),
             actions: [
-              FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      _isEditModeOn = !_isEditModeOn;
-                    });
-                  },
-                  child: Text("Edit"))
+              _isEditModeOn
+                  ? FlatButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditModeOn = !_isEditModeOn;
+                        });
+                      },
+                      child: Text(
+                        "Close",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ))
+                  : FlatButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditModeOn = !_isEditModeOn;
+                        });
+                      },
+                      child: Text(
+                        "Edit",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    )
             ],
             leading: _isEditModeOn
                 ? _canShowSelectAll
                     ? FlatButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          setState(() {
+                            _selectedForEdit = [
+                              for (var i = 0; i < sizeOfIntakesList; i++) true
+                            ];
+                            _canShowSelectAll = !_canShowSelectAll;
+                          });
+                        },
                         child: Text(
                           "all",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ))
                     : FlatButton(
-                        onPressed: () {},
+                        padding: EdgeInsets.all(4.0),
+                        onPressed: () {
+                          setState(() {
+                            _selectedForEdit = [
+                              for (var i = 0; i < sizeOfIntakesList; i++) false
+                            ];
+                            _canShowSelectAll = !_canShowSelectAll;
+                          });
+                        },
                         child: Text(
-                          "- all",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          "Deselect all",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 12.0),
                         ),
                       )
                 : IconButton(
@@ -129,13 +172,62 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
               return true;
             },
             child: SingleChildScrollView(
-              child: Provider.value(
+              scrollDirection: Axis.vertical,
+              child: MultiProvider(
+                providers: [
+                  Provider.value(
+                    value: _isEditModeOn,
+                  ),
+                  Provider.value(
+                    value: _selectedForEdit,
+                  ),
+                ],
                 child: ListOfDrinks(),
-                value: _isEditModeOn,
               ),
               controller: _controller,
             ),
           ),
+          floatingActionButton: _isEditModeOn
+              ? FloatingActionButton.extended(
+                  onPressed: () async {
+                    print(_selectedForEdit);
+                    print(intakes.length);
+                    List<WaterIntake> updatedIntake = [];
+                    List<bool> updatedSelectedForEdit = [];
+                    setState(() {
+                      sizeOfIntakesList = intakes.length;
+                      for (var i = 0; i < intakes.length; i++) {
+                        print("value outside  $i");
+                        if (!_selectedForEdit[i]) {
+                          print("value of $i");
+                          updatedIntake.add(intakes[i]);
+                          updatedSelectedForEdit.add(_selectedForEdit[i]);
+                        }
+                      }
+                    });
+                    print(intakes.length);
+                    print("$updatedSelectedForEdit vs old $_selectedForEdit");
+                    await DatabaseService(uid: user.uid)
+                        .updateDailyData(updatedIntake);
+                    setState(() {
+                      _selectedForEdit = updatedSelectedForEdit;
+                      intakes = updatedIntake;
+                    });
+                  },
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20.0),
+                          topRight: Radius.circular(20.0))),
+                  label: Text(
+                    "Delete",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  icon: Icon(Icons.delete_outline),
+                  backgroundColor: Colors.indigo.shade200,
+                )
+              : null,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
         ),
       ),
     );
@@ -148,21 +240,19 @@ class ListOfDrinks extends StatefulWidget {
 }
 
 class _ListOfDrinksState extends State<ListOfDrinks> {
-  List<bool> _selectedForEdit = [];
-
   @override
   Widget build(BuildContext context) {
     final intakes = Provider.of<List<WaterIntake>>(context);
     final _isEditModeOn = Provider.of<bool>(context);
     final userData = Provider.of<UserData>(context);
     double _percentOfGoal = 0.0;
+    List<bool> _selectedForEdit = Provider.of<List<bool>>(context);
     return SizedBox(
-      height: 800,
+      height: MediaQuery.of(context).size.height,
       child: ListView.builder(
+        scrollDirection: Axis.vertical,
         itemBuilder: (context, index) {
           _percentOfGoal = intakes[index].amount / userData.goal;
-          print(_percentOfGoal);
-
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: Card(
@@ -172,7 +262,7 @@ class _ListOfDrinksState extends State<ListOfDrinks> {
                   Opacity(
                     opacity: 0.8,
                     child: SizedBox(
-                      height: 60.0,
+                      height: 72.0,
                       child: LiquidLinearProgressIndicator(
                         value: _percentOfGoal,
                         direction: Axis.horizontal,
@@ -184,11 +274,17 @@ class _ListOfDrinksState extends State<ListOfDrinks> {
                   ),
                   ListTile(
                     tileColor: Colors.transparent,
+                    trailing: Text(intakes[index]
+                        .time
+                        .substring(0, intakes[index].time.lastIndexOf(':'))),
+                    subtitle: Text("${intakes[index].amount}"),
                     leading: _isEditModeOn
                         ? Checkbox(
                             value: _selectedForEdit.isEmpty
                                 ? false
-                                : _selectedForEdit[index],
+                                : _selectedForEdit.length == intakes.length
+                                    ? _selectedForEdit[index]
+                                    : false,
                             onChanged: (_) {
                               setState(() {
                                 _selectedForEdit.isEmpty
@@ -199,7 +295,10 @@ class _ListOfDrinksState extends State<ListOfDrinks> {
                               });
                             },
                           )
-                        : _getDrinkIcon(index, intakes),
+                        : IconButton(
+                            icon: _getDrinkIcon(index, intakes),
+                            onPressed: () {},
+                          ),
                     title: Text(intakes[index].drinkType),
                   ),
                 ],

@@ -1,6 +1,6 @@
+import 'package:day_night_time_picker/day_night_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:day_night_time_picker/day_night_time_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
@@ -13,11 +13,11 @@ class RecordDrinkPage extends StatefulWidget {
 
 class _RecordDrinkPageState extends State<RecordDrinkPage> {
   int _currentCapacity = 25;
-  var _isCardSelected = [false, false, false, false, false];
-  var _selectedDrinkType = "";
+  var _isCardSelected = [true, false, false, false, false];
+  var _selectedDrinkType = "water";
   var _calories = 0;
   var amount = 0;
-  TimeOfDay _time = TimeOfDay.now();
+  DateTime _time = DateTime.now();
   Map<String, int> _caloriesContent = {
     "water": 0,
     "coffee": 10,
@@ -290,7 +290,9 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(showPicker(
-                  context: context, value: _time, onChange: _onTimeChanged));
+                  context: context,
+                  value: _time as TimeOfDay,
+                  onChange: _onTimeChanged));
             },
             child: Container(
               decoration: BoxDecoration(
@@ -359,9 +361,9 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
   }
 
   Future _updateData(User user) async {
-    return DatabaseService(uid: user.uid).updateDailyData(WaterIntake(
+    return DatabaseService(uid: user.uid).addDailyData(WaterIntake(
         amount: _currentCapacity,
-        time: "${_time.hour}:${_time.minute}",
+        time: "${_time.hour}:${_time.minute}:${_time.second}",
         drinkType: _selectedDrinkType,
         calories: _calories));
   }
@@ -381,7 +383,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
 
   void _onTimeChanged(TimeOfDay newTime) {
     setState(() {
-      _time = newTime;
+      _time = newTime as DateTime;
     });
   }
 }

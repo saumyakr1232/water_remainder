@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
 
-
 class DatabaseService {
   final String uid;
   String _curDate =
@@ -22,7 +21,20 @@ class DatabaseService {
     }).catchError((e) => print(e));
   }
 
-  Future updateDailyData(WaterIntake waterIntake) async {
+  Future updateDailyData(List<WaterIntake> waterIntakes) async {
+    print("called updateDailyData with $waterIntakes");
+
+    return await userDataCollections
+        .document(uid)
+        .collection("dailyData")
+        .document(_curDate)
+        .setData({
+      "todayIntakes": FieldValue.arrayUnion(
+          [for (var waterIntake in waterIntakes) waterIntake.toJson()])
+    }, merge: false);
+  }
+
+  Future addDailyData(WaterIntake waterIntake) async {
     print("called updateDailyData with ${waterIntake.json()}");
 
     return await userDataCollections
@@ -32,16 +44,6 @@ class DatabaseService {
         .setData({
       "todayIntakes": FieldValue.arrayUnion([waterIntake.toJson()])
     }, merge: true);
-  }
-
-  Future updateWaterData(WaterData waterData) async {
-    return await userDataCollections
-        .document(uid)
-        .collection("waterData")
-        .document('all')
-        .setData({
-      'waterData': FieldValue.arrayUnion([waterData.toJson()])
-    }, merge: true).catchError((e) => print(e));
   }
 
   UserData _userDataFromSnapShot(DocumentSnapshot snapshot) {
@@ -68,15 +70,6 @@ class DatabaseService {
     return intakes;
   }
 
-  List<WaterData> _waterDataFromSnapshot(DocumentSnapshot snapshot) {
-    List<WaterData> waterData = [];
-
-    for (Map<dynamic, dynamic> map in snapshot.data['waterData']) {
-      waterData.add(WaterData.fromJson(map));
-    }
-    return waterData;
-  }
-
   //get UserData stream
   Stream<UserData> get userData {
     return userDataCollections
@@ -95,16 +88,4 @@ class DatabaseService {
         .snapshots()
         .map(_dailyDataFromSnapshot);
   }
-
-  Stream<List<WaterData>> get waterData {
-    return userDataCollections
-        .document(uid)
-        .collection("waterData")
-        .document("all")
-        .snapshots()
-        .map(_waterDataFromSnapshot);
-  }
-
-
-
 }

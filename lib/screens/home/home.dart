@@ -127,13 +127,12 @@ class _HomePageContentState extends State<HomePageContent> {
   int amount = 0;
 
   Future setAmount(int intake) async {
-    print("intake $intake");
     while (amount < intake) {
       setState(() {
         amount += 1;
       });
 
-      await Future.delayed(Duration(microseconds: 500));
+      await Future.delayed(Duration(microseconds: 5000));
     }
     while (intake < amount) {
       setState(() {
@@ -164,11 +163,10 @@ class _HomePageContentState extends State<HomePageContent> {
 
     UserData userData = Provider.of<UserData>(context) ??
         UserData(goal: 0, name: "new user", uid: "");
-    final intakes = Provider.of<List<WaterIntake>>(context);
+    final List<WaterIntake> intakes = Provider.of<List<WaterIntake>>(context);
     setState(() {
       percentGoalAchieved =
           Utils().getGoalAchievedPercent(intakes, userData.goal);
-      print(percentGoalAchieved);
     });
     setAmount(Utils().getTotalIntakeTodayFromListOfIntakes(intakes));
 
@@ -256,7 +254,6 @@ class _HomePageContentState extends State<HomePageContent> {
     ];
 
     void addWave() {
-      print("addWave called");
       setState(() {
         children2 = children2
           ..insert(
@@ -271,7 +268,6 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
               ));
       });
-      print(children2);
     }
 
     return Container(
@@ -327,10 +323,11 @@ class _HomePageContentState extends State<HomePageContent> {
                                   color: Colors.grey.shade500,
                                 ),
                                 onPressed: () {
-                                  print("called");
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (BuildContext context) =>
-                                          WaterRecordPage()));
+                                          WaterRecordPage(
+                                            intakes: intakes,
+                                          )));
                                 },
                               )
                             ],
@@ -526,26 +523,23 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Widget buildClipOval(int capacity) {
     var user = Provider.of<User>(context);
+    var userData = Provider.of<UserData>(context);
     return !_isUpdating
         ? Opacity(
             opacity: 0.8,
             child: GestureDetector(
               onTap: () async {
-                print(DateTime.now().toString());
                 setState(() {
                   _isUpdating = true;
                 });
 
-                await DatabaseService(uid: user.uid).updateDailyData(WaterIntake(
+                await DatabaseService(uid: user.uid).addDailyData(WaterIntake(
                     amount: capacity,
                     time:
                         "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
                     drinkType: "water",
                     calories: 0));
 
-                setState(() {
-                  _isUpdating = false;
-                });
               },
               child: Card(
                 color: Colors.white,
