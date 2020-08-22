@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:water_recommender/model/user.dart';
-import 'package:water_recommender/model/waterIntake.dart';
+
 import 'package:water_recommender/services/database.dart';
 
 class AuthServices {

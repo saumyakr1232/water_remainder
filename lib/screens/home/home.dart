@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_icons/flutter_icons.dart';
+import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
-import 'package:water_recommender/screens/authenticate/authenticate.dart';
+import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
 import 'package:water_recommender/services/auth.dart';
 import 'package:water_recommender/services/database.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:water_recommender/services/utils.dart';
-import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
 
 import 'addDrinkBottomSheet.dart';
 
@@ -90,11 +90,6 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 24.0),
           ),
           actions: [
-            // FlatButton(
-            //     onPressed: () {
-            //       _auth.signOut();
-            //     },
-            //     child: Text('sign out'))
             IconButton(
               icon: Icon(Icons.settings),
               color: Colors.black,
@@ -109,12 +104,6 @@ class _HomePageState extends State<HomePage> {
           onNotification: (scrollNotification) {
             if (scrollNotification is ScrollStartNotification) {
               _onStartScroll(scrollNotification.metrics);
-              // } else if (scrollNotification is ScrollUpdateNotification) {
-              //   _onUpdateScroll(scrollNotification.metrics);
-              // } else if (scrollNotification is ScrollEndNotification) {
-              //   _onEndScroll(scrollNotification.metrics);
-              // }
-
             }
 
             return true;
@@ -158,6 +147,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
   double percentGoalAchieved = 0.0;
   bool _isUpdating = false;
+  bool _waveIsAdded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -182,287 +172,309 @@ class _HomePageContentState extends State<HomePageContent> {
     });
     setAmount(Utils().getTotalIntakeTodayFromListOfIntakes(intakes));
 
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+    var children2 = [
+      //TODO: add another wave
+      LiquidLinearProgressIndicator(
+        value: percentGoalAchieved,
+        direction: Axis.vertical,
+        backgroundColor: Colors.transparent,
+        valueColor: AlwaysStoppedAnimation(Colors.indigo.shade200),
+      ),
+
+      Column(
         children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height / 2,
-            child: Stack(children: [
-              //TODO: add another wave
-              LiquidLinearProgressIndicator(
-                value: percentGoalAchieved,
-                direction: Axis.vertical,
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation(Colors.indigo.shade200),
-              ),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      FlatButton(
-                          onPressed: () {},
-                          child: Container(
-                            child: Row(
-                              children: [
-                                Icon(Icons.report,
-                                    size: 18.0, color: Colors.indigo.shade700),
-                                SizedBox(width: 4.0),
-                                Text(
-                                  "Drink some Water ${userData.name.toUpperCase()}",
-                                  style: TextStyle(
-                                      color: Colors.indigo.shade600,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                                SizedBox(width: 8.0),
-                                Icon(Icons.arrow_forward_ios,
-                                    size: 15.0, color: Colors.indigo.shade600)
-                              ],
-                            ),
-                          )),
-                    ],
-                    mainAxisAlignment: MainAxisAlignment.center,
-                  ),
-                  Text(
-                    amount.toString(),
-                    style: TextStyle(
-                        color: Colors.indigo.shade800, fontSize: 90.0),
-                  ),
-                  Row(
-                    children: [
-                      FlatButton(
-                        child: Text(
-                            "${(percentGoalAchieved * 100).round()} % completed",
-                            style: TextStyle(fontWeight: FontWeight.normal)),
-                        onPressed: () {},
-                        padding: EdgeInsets.symmetric(
-                            vertical: 0.0, horizontal: 6.0),
-                      ),
-                      FlatButton(
-                        onPressed: () {},
-                        child: Row(children: [
-                          Text(
-                            "Goal ${userData.goal} ml",
-                            style: TextStyle(fontWeight: FontWeight.normal),
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 18.0,
-                          )
-                        ]),
-                        padding: EdgeInsets.symmetric(
-                            vertical: 0.0, horizontal: 6.0),
-                      )
-                    ],
-                    mainAxisAlignment: MainAxisAlignment.center,
-                  ),
-                  SizedBox(
-                    height: 80.0,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildClipOval(50),
-                      buildClipOval(150),
-                      buildClipOval(200),
-                      buildClipOval(250),
-                      buildClipOval(300)
-                    ],
-                  ),
-                ],
-              ),
-            ]),
-          ),
-          SizedBox(
-            child: Container(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                colors: [Colors.indigo.shade200, Colors.white],
-                begin: Alignment.topCenter,
-                end: Alignment.center,
-              )),
-              child: Column(
-                children: [
-                  FlatButton(
-                    onPressed: _showRecordDringkSheet,
-                    child: Text(
-                      "Record drink",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.normal),
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(vertical: 2.0, horizontal: 32.0),
-                    color: Colors.blue.shade800,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                  ),
-                  SizedBox(height: 20.0),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                        decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            shape: BoxShape.rectangle,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20.0))),
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("Today's water drinking records"),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Colors.grey.shade500,
-                                  )
-                                ],
-                              ),
-                              Container(
-                                height: intakes != null && intakes.length > 3
-                                    ? 3 * 56.0
-                                    : intakes != null
-                                        ? intakes.length * 56.0
-                                        : 0,
-                                child: ListView.builder(
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title:
-                                          Text("${intakes[index].drinkType}"),
-                                      leading: _getDrinkIcon(index, intakes),
-                                      trailing: Text("${intakes[index].time}"),
-                                    );
-                                  },
-                                  itemCount: intakes != null
-                                      ? intakes.length > 3 ? 3 : intakes.length
-                                      : 0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  SizedBox(
-                    height: 40.0,
-                    child: ToggleButtons(
-                      children: [
-                        Padding(
-                          child: Text("Past 7 days"),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 0.0, horizontal: 8.0),
-                        ),
-                        Padding(
-                          child: Text("Last month"),
-                          padding: EdgeInsets.symmetric(
-                              vertical: 0.0, horizontal: 8.0),
-                        ),
-                      ],
-                      borderColor: Colors.indigo.shade400,
-                      disabledBorderColor: Colors.indigo.shade400,
-                      selectedBorderColor: Colors.indigo.shade400,
-                      fillColor: Colors.indigo.shade400,
-                      color: Colors.indigo.shade400,
-                      selectedColor: Colors.white,
-                      isSelected: isSelected,
-                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                      onPressed: (int index) {
-                        setState(() {
-                          isSelected = isSelected.reversed.toList();
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+          Row(
+            children: [
+              FlatButton(
+                  onPressed: () {},
+                  child: Container(
                     child: Row(
                       children: [
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "750",
-                                  style: TextStyle(
-                                      fontSize: 36.0,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                                Text("ml/days",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal))
-                              ],
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                            ),
-                            Text(
-                              "Average water \nintake",
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
+                        Icon(Icons.report,
+                            size: 18.0, color: Colors.indigo.shade700),
+                        SizedBox(width: 4.0),
+                        Text(
+                          "Drink some Water ${userData.name.toUpperCase()}",
+                          style: TextStyle(
+                              color: Colors.indigo.shade600,
+                              fontWeight: FontWeight.normal),
                         ),
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "2",
-                                  style: TextStyle(
-                                      fontSize: 36.0,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                                Text("times per day",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal))
-                              ],
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                            ),
-                            Text(
-                              "Average \nfrequency of \nwater intake",
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "0",
-                                  style: TextStyle(
-                                      fontSize: 36.0,
-                                      fontWeight: FontWeight.normal),
-                                ),
-                                Text("%",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.normal))
-                              ],
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                            ),
-                            Text(
-                              "Target \nachievement rate",
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        ),
+                        SizedBox(width: 8.0),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 15.0, color: Colors.indigo.shade600)
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  )),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
           ),
-          // Test(),
+          Text(
+            amount.toString(),
+            style: TextStyle(color: Colors.indigo.shade800, fontSize: 90.0),
+          ),
+          Row(
+            children: [
+              FlatButton(
+                child: Text(
+                    "${(percentGoalAchieved * 100).round()} % completed",
+                    style: TextStyle(fontWeight: FontWeight.normal)),
+                onPressed: () {},
+                padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 6.0),
+              ),
+              FlatButton(
+                onPressed: () {},
+                child: Row(children: [
+                  Text(
+                    "Goal ${userData.goal} ml",
+                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18.0,
+                  )
+                ]),
+                padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 6.0),
+              )
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          SizedBox(
+            height: 80.0,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              buildClipOval(50),
+              buildClipOval(150),
+              buildClipOval(200),
+              buildClipOval(250),
+              buildClipOval(300)
+            ],
+          ),
         ],
       ),
+    ];
+
+    void addWave() {
+      print("addWave called");
+      setState(() {
+        children2 = children2
+          ..insert(
+              1,
+              Opacity(
+                opacity: 0.8,
+                child: LiquidLinearProgressIndicator(
+                  value: percentGoalAchieved,
+                  direction: Axis.vertical,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation(Colors.red.shade200),
+                ),
+              ));
+      });
+      print(children2);
+    }
+
+    return Container(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height / 2,
+          child: Stack(children: children2),
+        ),
+
+        SizedBox(
+          child: Container(
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+              colors: [Colors.indigo.shade200, Colors.white],
+              begin: Alignment.topCenter,
+              end: Alignment.center,
+            )),
+            child: Column(
+              children: [
+                FlatButton(
+                  onPressed: _showRecordDringkSheet,
+                  child: Text(
+                    "Record drink",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.normal),
+                  ),
+                  padding:
+                      EdgeInsets.symmetric(vertical: 2.0, horizontal: 32.0),
+                  color: Colors.blue.shade800,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        shape: BoxShape.rectangle,
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Today's water drinking records"),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey.shade500,
+                                ),
+                                onPressed: () {
+                                  print("called");
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (BuildContext context) =>
+                                          WaterRecordPage()));
+                                },
+                              )
+                            ],
+                          ),
+                          AbsorbPointer(
+                            child: Container(
+                              height: intakes != null && intakes.length > 3
+                                  ? 3 * 56.0
+                                  : intakes != null ? intakes.length * 56.0 : 0,
+                              child: ListView.builder(
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text("${intakes[index].drinkType}"),
+                                    leading: _getDrinkIcon(index, intakes),
+                                    trailing: Text("${intakes[index].time}"),
+                                  );
+                                },
+                                itemCount: intakes != null
+                                    ? intakes.length > 3 ? 3 : intakes.length
+                                    : 0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 10.0,
+                ),
+                SizedBox(
+                  height: 40.0,
+                  child: ToggleButtons(
+                    children: [
+                      Padding(
+                        child: Text("Past 7 days"),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 0.0, horizontal: 8.0),
+                      ),
+                      Padding(
+                        child: Text("Last month"),
+                        padding: EdgeInsets.symmetric(
+                            vertical: 0.0, horizontal: 8.0),
+                      ),
+                    ],
+                    borderColor: Colors.indigo.shade400,
+                    disabledBorderColor: Colors.indigo.shade400,
+                    selectedBorderColor: Colors.indigo.shade400,
+                    fillColor: Colors.indigo.shade400,
+                    color: Colors.indigo.shade400,
+                    selectedColor: Colors.white,
+                    isSelected: isSelected,
+                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                    onPressed: (int index) {
+                      setState(() {
+                        isSelected = isSelected.reversed.toList();
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "750",
+                                style: TextStyle(
+                                    fontSize: 36.0,
+                                    fontWeight: FontWeight.normal),
+                              ),
+                              Text("ml/days",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.normal))
+                            ],
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                          ),
+                          Text(
+                            "Average water \nintake",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "2",
+                                style: TextStyle(
+                                    fontSize: 36.0,
+                                    fontWeight: FontWeight.normal),
+                              ),
+                              Text("times per day",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.normal))
+                            ],
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                          ),
+                          Text(
+                            "Average \nfrequency of \nwater intake",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "0",
+                                style: TextStyle(
+                                    fontSize: 36.0,
+                                    fontWeight: FontWeight.normal),
+                              ),
+                              Text("%",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.normal))
+                            ],
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                          ),
+                          Text(
+                            "Target \nachievement rate",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Test(),
+      ]),
     );
   }
 
@@ -515,48 +527,51 @@ class _HomePageContentState extends State<HomePageContent> {
   Widget buildClipOval(int capacity) {
     var user = Provider.of<User>(context);
     return !_isUpdating
-        ? GestureDetector(
-            onTap: () async {
-              print(DateTime.now().toString());
-              setState(() {
-                _isUpdating = true;
-              });
+        ? Opacity(
+            opacity: 0.8,
+            child: GestureDetector(
+              onTap: () async {
+                print(DateTime.now().toString());
+                setState(() {
+                  _isUpdating = true;
+                });
 
-              await DatabaseService(uid: user.uid).updateDailyData(WaterIntake(
-                  amount: capacity,
-                  time:
-                      "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
-                  drinkType: "water",
-                  calories: 0));
+                await DatabaseService(uid: user.uid).updateDailyData(WaterIntake(
+                    amount: capacity,
+                    time:
+                        "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
+                    drinkType: "water",
+                    calories: 0));
 
-              setState(() {
-                _isUpdating = false;
-              });
-            },
-            child: Card(
-              color: Colors.white,
-              elevation: 8.0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(30.0))),
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Icon(
-                      SimpleLineIcons.drop,
-                      color: Colors.indigo.shade500,
-                      size: 16.0,
-                    ),
-                    Text(
-                      capacity.toString(),
-                      style: TextStyle(
-                          color: Colors.indigo.shade500,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 12.0),
-                    ),
-                  ],
+                setState(() {
+                  _isUpdating = false;
+                });
+              },
+              child: Card(
+                color: Colors.white,
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30.0))),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Icon(
+                        SimpleLineIcons.drop,
+                        color: Colors.indigo.shade500,
+                        size: 16.0,
+                      ),
+                      Text(
+                        capacity.toString(),
+                        style: TextStyle(
+                            color: Colors.indigo.shade500,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 12.0),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
