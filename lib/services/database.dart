@@ -6,6 +6,8 @@ import 'package:water_recommender/model/waterIntake.dart';
 
 class DatabaseService {
   final String uid;
+  String _curDate =
+      "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}";
   DatabaseService({this.uid});
 
   final CollectionReference userDataCollections =
@@ -13,7 +15,7 @@ class DatabaseService {
 
   Future updateUserData(
     String name,
-    double goal,
+    int goal,
   ) async {
     return await userDataCollections.document(uid).setData(<String, dynamic>{
       'name': name,
@@ -22,13 +24,15 @@ class DatabaseService {
   }
 
   Future updateDailyData(WaterIntake waterIntake) async {
+    print("called updateDailyData with ${waterIntake.json()}");
+
     return await userDataCollections
         .document(uid)
         .collection("dailyData")
-        .document("today")
-        .updateData({
+        .document(_curDate)
+        .setData({
       "todayIntakes": FieldValue.arrayUnion([waterIntake.toJson()])
-    }).catchError((e) => print(e));
+    }, merge: true);
   }
 
   Future updateWaterData(WaterData waterData) async {
@@ -36,9 +40,9 @@ class DatabaseService {
         .document(uid)
         .collection("waterData")
         .document('all')
-        .updateData({
+        .setData({
       'waterData': FieldValue.arrayUnion([waterData.toJson()])
-    }).catchError((e) => print(e));
+    }, merge: true).catchError((e) => print(e));
   }
 
   UserData _userDataFromSnapShot(DocumentSnapshot snapshot) {
@@ -51,8 +55,14 @@ class DatabaseService {
 
   List<WaterIntake> _dailyDataFromSnapshot(DocumentSnapshot snapshot) {
     List<WaterIntake> intakes = [];
-    for (Map<dynamic, dynamic> map in snapshot.data['todayIntakes']) {
-      print(map);
+    List<dynamic> list = [];
+    try {
+      list = snapshot.data['todayIntakes'];
+    } catch (e) {
+      print("Error _dailyDataFromSnapshot ${e.toString()}");
+    }
+
+    for (Map<dynamic, dynamic> map in list) {
       intakes.add(WaterIntake.fromJson(map));
     }
 
@@ -82,7 +92,7 @@ class DatabaseService {
     return userDataCollections
         .document(uid)
         .collection("dailyData")
-        .document('today')
+        .document(_curDate)
         .snapshots()
         .map(_dailyDataFromSnapshot);
   }
@@ -96,15 +106,6 @@ class DatabaseService {
         .map(_waterDataFromSnapshot);
   }
 
-  // void test() async {
-  //   userDataCollections
-  //     ..document(uid)
-  //         .collection("dailyData")
-  //         .document('today')
-  //         .get()
-  //         .then((value) {
-  //       print(value.data);
-  //     });
-  // }
+
 
 }

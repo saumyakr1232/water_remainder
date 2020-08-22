@@ -11,4 +11,16 @@ class Utils {
     }
     return amount;
   }
+
+  double getGoalAchievedPercent(List<WaterIntake> intakes, int goal) {
+    int amount = getTotalIntakeTodayFromListOfIntakes(intakes);
+    if (amount / goal < 1.0) {
+      return amount / goal;
+    }
+
+    if (intakes == null) {
+      return 0;
+    }
+    return 1;
+  }
 }

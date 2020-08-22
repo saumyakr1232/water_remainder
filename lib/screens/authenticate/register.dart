@@ -129,8 +129,9 @@ class _RegisterState extends State<Register> {
                               loading = true;
                             });
 
-                            dynamic resutl = await _auth
-                                .registerWithEmailAndPassword(email, password, name, goal);
+                            dynamic resutl =
+                                await _auth.registerWithEmailAndPassword(email,
+                                    password, name, (goal * 1000).round());
                             if (resutl == null) {
                               setState(() {
                                 error = 'please apply a valid email';
