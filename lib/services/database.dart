@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
+import 'dart:async';
 
 class DatabaseService {
   final String uid;
   String _curDate =
-      "${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}";
+      "${DateTime.now().year}-${DateTime.now().month.toString().length == 1 ? DateTime.now().month.toString().padLeft(2, '0') : DateTime.now().month}-${DateTime.now().day.toString().length == 1 ? DateTime.now().day.toString().padLeft(2, '0') : DateTime.now().day}";
   DatabaseService({this.uid});
 
   final CollectionReference userDataCollections =
@@ -22,7 +23,7 @@ class DatabaseService {
   }
 
   Future updateDailyData(List<WaterIntake> waterIntakes) async {
-    print("called updateDailyData with $waterIntakes");
+    // print("called updateDailyData with $waterIntakes");
 
     return await userDataCollections
         .document(uid)
@@ -35,7 +36,7 @@ class DatabaseService {
   }
 
   Future addDailyData(WaterIntake waterIntake) async {
-    print("called updateDailyData with ${waterIntake.json()}");
+    // print("called updateDailyData with ${waterIntake.json()}");
 
     return await userDataCollections
         .document(uid)
@@ -87,5 +88,28 @@ class DatabaseService {
         .document(_curDate)
         .snapshots()
         .map(_dailyDataFromSnapshot);
+  }
+
+  Stream<Map<String, List<WaterIntake>>> get allData {
+    return userDataCollections
+        .document(uid)
+        .collection("dailyData")
+        .snapshots()
+        .map(_allDataFromQuerySnapshot);
+    //     .then((querySnapshot) {
+    //   snapshots = querySnapshot.documents;
+    //   print(snapshots.first.documentID);
+    // });
+  }
+
+  Map<String, List<WaterIntake>> _allDataFromQuerySnapshot(
+      QuerySnapshot querySnapshot) {
+    // print('Called _allDataFromQuerySnapshot $querySnapshot');
+    List<DocumentSnapshot> snapshots = querySnapshot.documents;
+    Map<String, List<WaterIntake>> map = {};
+    for (DocumentSnapshot snapshot in snapshots) {
+      map[snapshot.documentID] = _dailyDataFromSnapshot(snapshot);
+    }
+    return map;
   }
 }

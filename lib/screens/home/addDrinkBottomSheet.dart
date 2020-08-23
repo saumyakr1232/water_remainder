@@ -1,6 +1,7 @@
 import 'package:day_night_time_picker/day_night_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
@@ -17,6 +18,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
   var _selectedDrinkType = "water";
   var _calories = 0;
   var amount = 0;
+  var _drinkTypes = ["water", "tea", "coffee", "soda", 'juice'];
   DateTime _time = DateTime.now();
   Map<String, int> _caloriesContent = {
     "water": 0,
@@ -41,188 +43,11 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Card(
-                      color: _isCardSelected[0]
-                          ? Colors.indigo.shade500
-                          : Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(30.0))),
-                      elevation: 2.0,
-                      child: IconButton(
-                        icon: Icon(
-                          SimpleLineIcons.drop,
-                          color: _isCardSelected[0]
-                              ? Colors.white
-                              : Colors.indigo.shade500,
-                        ),
-                        onPressed: () {
-                          _toggleButtons(0);
-                          setState(() {
-                            _selectedDrinkType = "water";
-                            _calories =
-                                (_caloriesContent[_selectedDrinkType] * amount)
-                                    .round();
-                          });
-                        },
-                      )),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Water",
-                      style: TextStyle(color: Colors.indigo.shade500),
-                    ),
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  Card(
-                    color: _isCardSelected[1]
-                        ? Colors.indigo.shade500
-                        : Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(30.0))),
-                    elevation: 2.0,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.local_cafe_outlined,
-                        color: _isCardSelected[1]
-                            ? Colors.white
-                            : Colors.indigo.shade500,
-                      ),
-                      onPressed: () {
-                        _toggleButtons(1);
-                        setState(() {
-                          _selectedDrinkType = "coffee";
-                          _calories =
-                              (_caloriesContent[_selectedDrinkType] * amount)
-                                  .round();
-                        });
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Coffee",
-                      style: TextStyle(color: Colors.indigo.shade500),
-                    ),
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  Card(
-                      color: _isCardSelected[2]
-                          ? Colors.indigo.shade500
-                          : Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(30.0))),
-                      elevation: 2.0,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.emoji_food_beverage_outlined,
-                          color: _isCardSelected[2]
-                              ? Colors.white
-                              : Colors.indigo.shade500,
-                        ),
-                        onPressed: () {
-                          _toggleButtons(2);
-                          setState(() {
-                            _selectedDrinkType = "tea";
-                            _calories =
-                                (_caloriesContent[_selectedDrinkType] * amount)
-                                    .round();
-                          });
-                        },
-                      )),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Tea",
-                      style: TextStyle(color: Colors.indigo.shade500),
-                    ),
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  Card(
-                      color: _isCardSelected[3]
-                          ? Colors.indigo.shade500
-                          : Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(30.0))),
-                      elevation: 2.0,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.local_drink_outlined,
-                          color: _isCardSelected[3]
-                              ? Colors.white
-                              : Colors.indigo.shade500,
-                        ),
-                        onPressed: () {
-                          _toggleButtons(3);
-                          setState(() {
-                            _selectedDrinkType = "soda";
-                            _calories =
-                                (_caloriesContent[_selectedDrinkType] * amount)
-                                    .round();
-                          });
-                        },
-                      )),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Soda",
-                      style: TextStyle(color: Colors.indigo.shade500),
-                    ),
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  Card(
-                      color: _isCardSelected[4]
-                          ? Colors.indigo.shade500
-                          : Colors.white,
-                      key: UniqueKey(),
-                      shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(30.0))),
-                      elevation: 2.0,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.local_bar_outlined,
-                          color: _isCardSelected[4]
-                              ? Colors.white
-                              : Colors.indigo.shade500,
-                        ),
-                        onPressed: () {
-                          _toggleButtons(4);
-                          setState(() {
-                            _selectedDrinkType = "juice";
-                            _calories =
-                                (_caloriesContent[_selectedDrinkType] * amount)
-                                    .round();
-                          });
-                        },
-                      )),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Juice",
-                      style: TextStyle(color: Colors.indigo.shade500),
-                    ),
-                  )
-                ],
-              ),
+              buildDrinkType(0),
+              buildDrinkType(1),
+              buildDrinkType(2),
+              buildDrinkType(3),
+              buildDrinkType(4),
             ],
           ),
           SizedBox(
@@ -347,8 +172,8 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
                           fontSize: 18.0),
                     ),
                     onPressed: () async {
-                      await _updateData(user);
                       Navigator.pop(context);
+                      await _updateData(user);
                     },
                   ),
                 )
@@ -360,10 +185,93 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
     );
   }
 
+  Column buildDrinkType(int index) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Card(
+            color:
+                _isCardSelected[index] ? Colors.indigo.shade500 : Colors.white,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(30.0))),
+            elevation: 2.0,
+            child: IconButton(
+              icon: _getDrinkIcon(index),
+              onPressed: () {
+                _toggleButtons(index);
+                setState(() {
+                  _selectedDrinkType = _drinkTypes[index];
+                  _calories =
+                      (_caloriesContent[_selectedDrinkType] * amount).round();
+                });
+              },
+            )),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            _drinkTypes[index].toUpperCase(),
+            style: TextStyle(color: Colors.indigo.shade500),
+          ),
+        )
+      ],
+    );
+  }
+
+  Icon _getDrinkIcon(int index) {
+    switch (_drinkTypes[index]) {
+      case "soda":
+        {
+          return Icon(
+            Icons.local_drink_outlined,
+            size: 20.0,
+            color:
+                _isCardSelected[index] ? Colors.white : Colors.indigo.shade500,
+          );
+        }
+      case "coffee":
+        {
+          return Icon(
+            Icons.local_cafe_outlined,
+            size: 20.0,
+            color:
+                _isCardSelected[index] ? Colors.white : Colors.indigo.shade500,
+          );
+        }
+      case "tea":
+        {
+          return Icon(
+            Icons.emoji_food_beverage_outlined,
+            size: 20.0,
+            color:
+                _isCardSelected[index] ? Colors.white : Colors.indigo.shade500,
+          );
+        }
+      case "juice":
+        {
+          return Icon(
+            Icons.local_bar_outlined,
+            size: 20.0,
+            color:
+                _isCardSelected[index] ? Colors.white : Colors.indigo.shade500,
+          );
+        }
+
+      default:
+        {
+          return Icon(
+            SimpleLineIcons.drop,
+            size: 20.0,
+            color:
+                _isCardSelected[index] ? Colors.white : Colors.indigo.shade500,
+          );
+        }
+    }
+  }
+
   Future _updateData(User user) async {
     return DatabaseService(uid: user.uid).addDailyData(WaterIntake(
         amount: _currentCapacity,
-        time: "${_time.hour}:${_time.minute}:${_time.second}",
+        time: "${DateFormat.Hms().format(DateTime.now())}",
         drinkType: _selectedDrinkType,
         calories: _calories));
   }
