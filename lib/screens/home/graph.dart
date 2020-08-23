@@ -14,57 +14,157 @@ class _GraphViewState extends State<GraphView> {
   @override
   Widget build(BuildContext context) {
     bool _showMonthGraph = Provider.of<bool>(context);
-    var allData = Provider.of<Map<String, List<WaterIntake>>>(context);
-    var dataWeek = Utils().listOfMlPerDayWeek(allData);
-    var dataMonth = Utils().listOfMlPerDayMonth(allData);
-    print(dataWeek.length);
-    var seriesWeek = [
-      new charts.Series<MlPerDay, String>(
-          data: dataWeek,
-          measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
-          colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
-          id: 'mls',
-          domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
-              .format(DateTime.parse(mlPerDay.date))
-              .substring(0, 3))
-    ];
-
-    var seriesMonth = [
-      new charts.Series<MlPerDay, String>(
-          data: dataMonth,
-          measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
-          colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
-          id: 'mls',
-          domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
-              .format(DateTime.parse(mlPerDay.date))
-              .substring(0, 3))
-    ];
 
     var chartWidget = Padding(
       padding: EdgeInsets.all(20.0),
       child: SizedBox(
         child: charts.BarChart(
-          seriesWeek,
+          getGraph(_showMonthGraph),
           animate: true,
+          defaultRenderer: new charts.BarRendererConfig(
+              groupingType: charts.BarGroupingType.stacked, strokeWidthPx: 2.0),
         ),
         height: 200.0,
       ),
     );
     var chartWidgetMonth = SingleChildScrollView(
+      reverse: true,
       child: Padding(
         padding: EdgeInsets.all(20.0),
         child: SizedBox(
           child: charts.BarChart(
-            seriesMonth,
+            getGraph(_showMonthGraph),
             animate: true,
+            defaultRenderer: new charts.BarRendererConfig(
+                groupingType: charts.BarGroupingType.stacked,
+                strokeWidthPx: 2.0),
           ),
           height: 200.0,
           width: 700.0,
         ),
       ),
       scrollDirection: Axis.horizontal,
-      
     );
     return _showMonthGraph ? chartWidgetMonth : chartWidget;
+  }
+
+  List<charts.Series<MlPerDay, String>> getGraph(bool _showMonthGraph) {
+    var allData = Provider.of<Map<String, List<WaterIntake>>>(context);
+    var waterDataWeek = Utils().listOfMlPerDay(allData, "water", false);
+    var waterDataMonth = Utils().listOfMlPerDay(allData, "water", true);
+    var sodaDataWeek = Utils().listOfMlPerDay(allData, "soda", false);
+    var sodaDataMonth = Utils().listOfMlPerDay(allData, "soda", true);
+    var teaDataWeek = Utils().listOfMlPerDay(allData, "tea", false);
+    var teaDataMonth = Utils().listOfMlPerDay(allData, "tea", true);
+    var coffeeDataWeek = Utils().listOfMlPerDay(allData, "coffee", false);
+    var coffeeDataMonth = Utils().listOfMlPerDay(allData, "coffee", true);
+    var juiceDataWeek = Utils().listOfMlPerDay(allData, "juice", false);
+    var juiceDataMonth = Utils().listOfMlPerDay(allData, "juice", true);
+
+    return !_showMonthGraph
+        ? [
+            new charts.Series<MlPerDay, String>(
+                data: waterDataWeek,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'waterDataWeek',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: sodaDataWeek,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'sodaDataWeek',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: teaDataWeek,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'teaDataWeek',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: coffeeDataWeek,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'coffeeDataWeek',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: juiceDataWeek,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'juiceDataWeek',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat.EEEE()
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+          ]
+        : [
+            new charts.Series<MlPerDay, String>(
+                data: waterDataMonth,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'waterDataMonth',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: sodaDataMonth,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'sodaDataMonth',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: teaDataMonth,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'teaDataMonth',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: coffeeDataMonth,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'coffeeDataMonth',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3)),
+            new charts.Series<MlPerDay, String>(
+                data: juiceDataMonth,
+                measureFn: (MlPerDay mlPerDay, _) => mlPerDay.amount,
+                colorFn: (MlPerDay mlPerDay, _) => mlPerDay.color,
+                id: 'juiceDataMonth',
+                // fillColorFn: (_, __) =>
+                //     charts.MaterialPalette.blue.shadeDefault.lighter,
+                domainFn: (MlPerDay mlPerDay, _) => DateFormat('dd-MM')
+                    .format(DateTime.parse(mlPerDay.date))
+                    .substring(0, 3))
+          ];
   }
 }

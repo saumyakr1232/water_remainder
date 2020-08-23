@@ -17,6 +17,18 @@ class Utils {
     return amount;
   }
 
+  int getDrinkAmountIntakeToday(List<WaterIntake> intakes, String drinkType) {
+    int amount = 0;
+    if (intakes != null) {
+      for (WaterIntake intake
+          in intakes.where((element) => element.drinkType == drinkType)) {
+        amount += intake.amount;
+      }
+      return amount;
+    }
+    return amount;
+  }
+
   double getGoalAchievedPercent(List<WaterIntake> intakes, int goal) {
     int amount = getTotalIntakeTodayFromListOfIntakes(intakes);
     if (amount / goal < 1.0) {
@@ -83,30 +95,31 @@ class Utils {
     ];
   }
 
-  List<MlPerDay> listOfMlperDay(Map<String, List<WaterIntake>> allData) {
-    List<MlPerDay> list = [];
-    allData.forEach((key, value) {
-      list.add(MlPerDay(
-          getTotalIntakeTodayFromListOfIntakes(value), key, Colors.indigo));
-    });
-    return list;
-  }
+  // List<MlPerDay> listOfMlperDay(Map<String, List<WaterIntake>> allData) {
+  //   List<MlPerDay> list = [];
+  //   allData.forEach((key, value) {
+  //     list.add(MlPerDay(
+  //         getTotalIntakeTodayFromListOfIntakes(value), key, Colors.indigo));
+  //   });
+  //   return list;
+  // }
 
-  List<MlPerDay> listOfMlPerDayWeek(Map<String, List<WaterIntake>> allData) {
+  List<MlPerDay> listOfMlPerDay(
+      Map<String, List<WaterIntake>> allData, String drinkType, bool forMonth) {
     List<MlPerDay> list = [];
-
+    int days = forMonth ? 30 : 7;
     allData.forEach((key, value) {
-      list.add(MlPerDay(
-          getTotalIntakeTodayFromListOfIntakes(value), key, Colors.indigo));
+      list.add(MlPerDay(getDrinkAmountIntakeToday(value, drinkType), key,
+          _getDrinkColor(drinkType)));
     });
     int len = list.length;
-    print("length of list $len");
+    // print("length of list $len");
 
-    if (len > 7) {
+    if (len > days) {
       return list.sublist(list.length - 7);
     }
-    if (len < 7) {
-      int j = 7 - len;
+    if (len < days) {
+      int j = days - len;
       List<MlPerDay> updatedList = [];
       updatedList.addAll(list);
       for (int i = 0; i < j; i++) {
@@ -116,51 +129,41 @@ class Utils {
                 DateTime.now().month, DateTime.now().day - i - 1)),
             Colors.indigo));
       }
-      updatedList.sort((a, b) =>
-          DateTime.parse(a.date).day.compareTo(DateTime.parse(b.date).day));
+      updatedList.sort(
+          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
 
-      updatedList.forEach((element) {
-        print(element.date);
-      });
+      // updatedList.forEach((element) {
+      //   print(element.date);
+      // });
       return updatedList;
     } else {
       return list;
     }
   }
 
-  List<MlPerDay> listOfMlPerDayMonth(Map<String, List<WaterIntake>> allData) {
-    List<MlPerDay> list = [];
+  Color _getDrinkColor(String type) {
+    switch (type) {
+      case "soda":
+        {
+          return Colors.green.shade300;
+        }
+      case "coffee":
+        {
+          return Colors.brown.shade500;
+        }
+      case "tea":
+        {
+          return Colors.brown.shade300;
+        }
+      case "juice":
+        {
+          return Colors.deepOrange.shade300;
+        }
 
-    allData.forEach((key, value) {
-      list.add(MlPerDay(
-          getTotalIntakeTodayFromListOfIntakes(value), key, Colors.indigo));
-    });
-    int len = list.length;
-    print("length of list $len");
-
-    if (len > 30) {
-      return list.sublist(list.length - 30);
-    }
-    if (len < 30) {
-      int j = 30 - len;
-      List<MlPerDay> updatedList = [];
-      updatedList.addAll(list);
-      for (int i = 0; i < j; i++) {
-        updatedList.add(MlPerDay(
-            0,
-            DateFormat("yyyy-MM-dd").format(DateTime(DateTime.now().year,
-                DateTime.now().month, DateTime.now().day - i - 1)),
-            Colors.indigo));
-      }
-      updatedList.sort((a, b) =>
-          DateTime.parse(a.date).day.compareTo(DateTime.parse(b.date).day));
-
-      updatedList.forEach((element) {
-        print(element.date);
-      });
-      return updatedList;
-    } else {
-      return list;
+      default:
+        {
+          return Colors.blue.shade300;
+        }
     }
   }
 }
