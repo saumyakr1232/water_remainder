@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
@@ -29,15 +28,12 @@ class WaterRecordPage extends StatefulWidget {
 }
 
 class _WaterRecordPageState extends State<WaterRecordPage> {
-  List<bool> _selectedForEdit = [];
-
   List<WaterIntake> intakes;
   _WaterRecordPageState({this.intakes});
 
   @override
   Widget build(BuildContext context) {
     final User user = Provider.of<User>(context);
-    int sizeOfIntakesList = intakes.length;
     return MultiProvider(
       providers: [
         StreamProvider.value(
