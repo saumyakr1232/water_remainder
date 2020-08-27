@@ -10,6 +10,7 @@ import 'package:water_recommender/screens/home/graph.dart';
 import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
+import 'package:water_recommender/shared/prefs.dart';
 import '../commonWidgets.dart';
 import 'addDrinkBottomSheet.dart';
 import 'package:intl/intl.dart';
@@ -20,9 +21,6 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  bool _showMonthGraph = false;
-  List<bool> isSelected = [true, false];
-
   @override
   Widget build(BuildContext context) {
     print("called build ");
@@ -230,37 +228,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 SizedBox(
                   height: 10.0,
                 ),
-                SizedBox(
-                  height: 40.0,
-                  child: ToggleButtons(
-                    children: [
-                      Padding(
-                        child: Text("Past 7 days"),
-                        padding: EdgeInsets.symmetric(
-                            vertical: 0.0, horizontal: 8.0),
-                      ),
-                      Padding(
-                        child: Text("Last month"),
-                        padding: EdgeInsets.symmetric(
-                            vertical: 0.0, horizontal: 8.0),
-                      ),
-                    ],
-                    borderColor: Colors.indigo.shade400,
-                    disabledBorderColor: Colors.indigo.shade400,
-                    selectedBorderColor: Colors.indigo.shade400,
-                    fillColor: Colors.indigo.shade400,
-                    color: Colors.indigo.shade400,
-                    selectedColor: Colors.white,
-                    isSelected: isSelected,
-                    borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                    onPressed: (int index) {
-                      setState(() {
-                        isSelected = isSelected.reversed.toList();
-                        _showMonthGraph = !_showMonthGraph;
-                      });
-                    },
-                  ),
-                ),
+                SizedBox(height: 40.0, child: CustomToggleButton()),
                 SizedBox(
                   height: 10.0,
                 ),
@@ -340,10 +308,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     ],
                   ),
                 ),
-                Provider.value(
-                  child: GraphView(),
-                  value: _showMonthGraph,
-                ),
+                GraphView(),
               ],
             ),
           ),

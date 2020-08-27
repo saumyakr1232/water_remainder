@@ -9,6 +9,7 @@ import 'package:water_recommender/screens/sleep/sleepPage.dart';
 import 'package:water_recommender/services/auth.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
+import 'package:water_recommender/shared/prefs.dart';
 
 class Home extends StatelessWidget {
 //  String test = "initial";
@@ -34,6 +35,7 @@ class Home extends StatelessWidget {
         StreamProvider.value(
           value: DatabaseService(uid: user.uid).todaySleepData,
         ),
+        ChangeNotifierProvider(create: (_) => PrefNotifier()),
       ],
       child: HomePage(),
     );
@@ -84,7 +86,7 @@ class _HomePageState extends State<HomePage>
   TabController _tabController;
   bool isScrollStarted = false;
   bool isScrollOnStart = true;
-  ScrollController _controller;
+//  ScrollController _controller;
 
   @override
   void initState() {
@@ -139,9 +141,7 @@ class _HomePageState extends State<HomePage>
     var user = Provider.of<User>(context);
 //    print("called from _HomePageState");
     final AuthServices _auth = AuthServices();
-    return AnimatedContainer(
-      curve: Curves.easeInOut,
-      duration: Duration(milliseconds: 500),
+    return Container(
       decoration: BoxDecoration(
           gradient: LinearGradient(
         colors: [_tabHandler.colorPrimary, _tabHandler.colorSecondary],

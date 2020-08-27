@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:water_recommender/model/waterIntake.dart';
 import 'package:water_recommender/services/utils.dart';
 import 'package:intl/intl.dart';
+import 'package:water_recommender/shared/prefs.dart';
 
 class GraphView extends StatefulWidget {
   @override
@@ -13,13 +14,13 @@ class GraphView extends StatefulWidget {
 class _GraphViewState extends State<GraphView> {
   @override
   Widget build(BuildContext context) {
-    bool _showMonthGraph = Provider.of<bool>(context);
+    var prefs = Provider.of<PrefNotifier>(context);
 
     var chartWidget = Padding(
       padding: EdgeInsets.all(20.0),
       child: SizedBox(
         child: charts.BarChart(
-          getGraph(_showMonthGraph),
+          getGraph(prefs.showWaterDataGraphForMonth),
           animate: true,
           defaultRenderer: new charts.BarRendererConfig(
               groupingType: charts.BarGroupingType.stacked, strokeWidthPx: 2.0),
@@ -33,7 +34,7 @@ class _GraphViewState extends State<GraphView> {
         padding: EdgeInsets.all(8.0),
         child: SizedBox(
           child: charts.BarChart(
-            getGraph(_showMonthGraph),
+            getGraph(prefs.showWaterDataGraphForMonth),
             animate: true,
             domainAxis: charts.OrdinalAxisSpec(
                 renderSpec: charts.SmallTickRendererSpec(labelRotation: 60)),
@@ -95,7 +96,7 @@ class _GraphViewState extends State<GraphView> {
         ],
       ),
     );
-    return _showMonthGraph
+    return prefs.showWaterDataGraphForMonth
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -124,6 +125,10 @@ class _GraphViewState extends State<GraphView> {
     var coffeeDataMonth = Utils().listOfMlPerDay(allData, "coffee", true);
     var juiceDataWeek = Utils().listOfMlPerDay(allData, "juice", false);
     var juiceDataMonth = Utils().listOfMlPerDay(allData, "juice", true);
+
+//    waterDataWeek.forEach((element) {
+//      print(element.amount.toString() + " " + element.date);
+//    });
 
     return !_showMonthGraph
         ? [

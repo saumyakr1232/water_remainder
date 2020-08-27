@@ -144,6 +144,7 @@ class DatabaseService {
     return userDataCollections
         .document(uid)
         .collection("dailyData")
+        .limit(30)
         .snapshots()
         .map(_allWaterDataFromQuerySnapshot);
   }

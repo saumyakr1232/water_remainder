@@ -149,50 +149,26 @@ class Utils {
     ];
   }
 
-  // List<MlPerDay> listOfMlperDay(Map<String, List<WaterIntake>> allData) {
-  //   List<MlPerDay> list = [];
-  //   allData.forEach((key, value) {
-  //     list.add(MlPerDay(
-  //         getTotalIntakeTodayFromListOfIntakes(value), key, Colors.indigo));
-  //   });
-  //   return list;
-  // }
-
   List<MlPerDay> listOfMlPerDay(
       Map<String, List<WaterIntake>> allData, String drinkType, bool forMonth) {
     List<MlPerDay> list = [];
-    int days = forMonth ? 30 : 7;
     allData.forEach((key, value) {
       list.add(MlPerDay(getTotalIntakeToday(value, drinkType: drinkType), key,
           getDrinkColor(drinkType)));
     });
-    int len = list.length;
+    int len = allData.length;
+    for (int i = 0; i < 30; i++) {
+      list.add(MlPerDay(
+          0,
+          DateFormat("yyyy-MM-dd").format(DateTime(DateTime.now().year,
+              DateTime.now().month, DateTime.now().day - i - 1)),
+          Colors.indigo));
+    }
     // print("length of list $len");
+    list.sort(
+        (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
 
-    if (len > days) {
-      return list.sublist(list.length - 7);
-    }
-    if (len < days) {
-      int j = days - len;
-      List<MlPerDay> updatedList = [];
-      updatedList.addAll(list);
-      for (int i = 0; i < j; i++) {
-        updatedList.add(MlPerDay(
-            0,
-            DateFormat("yyyy-MM-dd").format(DateTime(DateTime.now().year,
-                DateTime.now().month, DateTime.now().day - i - 1)),
-            Colors.indigo));
-      }
-      updatedList.sort(
-          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
-
-      // updatedList.forEach((element) {
-      //   print(element.date);
-      // });
-      return updatedList;
-    } else {
-      return list;
-    }
+    return forMonth ? list : list.skip(len + 23).toList();
   }
 
   List<MinPerDay> listOfMinPerDay(
