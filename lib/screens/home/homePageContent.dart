@@ -1,4 +1,3 @@
-import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_icons/flutter_icons.dart';
@@ -11,7 +10,7 @@ import 'package:water_recommender/screens/home/graph.dart';
 import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
-import '../commonWidgits.dart';
+import '../commonWidgets.dart';
 import 'addDrinkBottomSheet.dart';
 import 'package:intl/intl.dart';
 
@@ -22,25 +21,23 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   bool _showMonthGraph = false;
-
   List<bool> isSelected = [true, false];
-
-  double percentGoalAchieved = 0.0;
-  bool _isUpdating = false;
 
   @override
   Widget build(BuildContext context) {
+    print("called build ");
+
 //    print("Called from _homePageContentState");
-    var dataConnectionStatus = Provider.of<DataConnectionStatus>(context);
+//    var dataConnectionStatus = Provider.of<DataConnectionStatus>(context);
     var allSleepData = Provider.of<Map<String, List<SleepData>>>(context);
     var allWaterData = Provider.of<Map<String, List<WaterIntake>>>(context);
 
     UserData userData = Provider.of<UserData>(context) ??
         UserData(goal: 0, name: "new user", uid: "");
-
     int _avgWaterIntake;
     int _avgFreqIntake;
     int _targetAchiveRate;
+    double percentGoalAchieved;
     void _showRecordDringkSheet() {
       showModalBottomSheet(
           enableDrag: false,
@@ -53,15 +50,14 @@ class _HomePageContentState extends State<HomePageContent> {
     }
 
     final List<WaterIntake> intakes = Provider.of<List<WaterIntake>>(context);
-    setState(() {
-      percentGoalAchieved =
-          Utils().getWaterGoalAchievedPercent(intakes, userData.goal);
-      _avgWaterIntake = Utils().getAverageIntake(allWaterData).round();
-      _avgFreqIntake = Utils().getFrequencyOfIntakePerDay(allWaterData).round();
-      _targetAchiveRate =
-          (Utils().getTargetAchievementRate(allWaterData, userData.goal) * 100)
-              .round();
-    });
+
+    percentGoalAchieved =
+        Utils().getWaterGoalAchievedPercent(intakes, userData.goal);
+    _avgWaterIntake = Utils().getAverageIntake(allWaterData).round();
+    _avgFreqIntake = Utils().getFrequencyOfIntakePerDay(allWaterData).round();
+    _targetAchiveRate =
+        (Utils().getTargetAchievementRate(allWaterData, userData.goal) * 100)
+            .round();
 
     var children2 = [
       LiquidLinearProgressIndicator(

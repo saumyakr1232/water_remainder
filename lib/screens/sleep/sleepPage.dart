@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:water_recommender/model/sleepData.dart';
 import 'package:water_recommender/model/user.dart';
-import 'package:water_recommender/screens/commonWidgits.dart';
+import 'package:water_recommender/screens/commonWidgets.dart';
 import 'package:water_recommender/screens/sleep/sleepRadialBar.dart';
 import 'package:water_recommender/services/database.dart';
 

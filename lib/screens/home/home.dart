@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_icons/flutter_icons.dart';
@@ -92,48 +89,48 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    _controller = ScrollController();
-    _controller.addListener(_scrollListener);
+//    _controller = ScrollController();
+//    _controller.addListener(_scrollListener);
     _tabHandler = _tabs[0];
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleSelected);
-    _tabController.addListener(_resetScrollBools);
+//    _tabController.addListener(_resetScrollBools);
   }
 
-  void _resetScrollBools() {
-    setState(() {
-      isScrollStarted = false;
-      isScrollOnStart = true;
-    });
-  }
+//  void _resetScrollBools() {
+//    setState(() {
+//      isScrollStarted = false;
+//      isScrollOnStart = true;
+//    });
+//  }
 
   void _handleSelected() {
     setState(() {
       _tabHandler = _tabs[_tabController.index];
     });
   }
-
-  _onStartScroll(ScrollMetrics metrics) {
-    setState(() {
-      isScrollStarted = true;
-      isScrollOnStart = false;
-    });
-  }
-
-  _scrollListener() {
-    if (_controller.offset >= _controller.position.maxScrollExtent &&
-        !_controller.position.outOfRange) {
-      setState(() {
-        isScrollOnStart = false;
-      });
-    }
-    if (_controller.offset <= _controller.position.minScrollExtent &&
-        !_controller.position.outOfRange) {
-      setState(() {
-        isScrollOnStart = true;
-      });
-    }
-  }
+//
+//  _onStartScroll(ScrollMetrics metrics) {
+//    setState(() {
+//      isScrollStarted = true;
+//      isScrollOnStart = false;
+//    });
+//  }
+//
+//  _scrollListener() {
+//    if (_controller.offset >= _controller.position.maxScrollExtent &&
+//        !_controller.position.outOfRange) {
+//      setState(() {
+//        isScrollOnStart = false;
+//      });
+//    }
+//    if (_controller.offset <= _controller.position.minScrollExtent &&
+//        !_controller.position.outOfRange) {
+//      setState(() {
+//        isScrollOnStart = true;
+//      });
+//    }
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,34 +189,18 @@ class _HomePageState extends State<HomePage>
         ),
         body: TabBarView(
           children: [
-            NotificationListener<ScrollNotification>(
-              onNotification: (scrollNotification) {
-                if (scrollNotification is ScrollStartNotification) {
-                  _onStartScroll(scrollNotification.metrics);
-                }
-
-                return true;
-              },
-              child: SingleChildScrollView(
-                  controller: _controller, child: HomePageContent()),
+            SingleChildScrollView(
+//                controller: _controller,
+              child: HomePageContent(),
             ),
-            NotificationListener<ScrollNotification>(
-              onNotification: (scrollNotification) {
-                if (scrollNotification is ScrollStartNotification) {
-                  _onStartScroll(scrollNotification.metrics);
-                }
-
-                return true;
-              },
-              child: SingleChildScrollView(
-                controller: _controller,
-                child: StreamProvider.value(
-                    value:
-                        DatabaseService(uid: user.uid, sleepGoal: userData.goal)
-                            .avgSleep,
-                    initialData: 0.0,
-                    child: SleepPage()),
-              ),
+            SingleChildScrollView(
+//              controller: _controller,
+              child: StreamProvider.value(
+                  value:
+                      DatabaseService(uid: user.uid, sleepGoal: userData.goal)
+                          .avgSleep,
+                  initialData: 0.0,
+                  child: SleepPage()),
             ),
           ],
           controller: _tabController,
