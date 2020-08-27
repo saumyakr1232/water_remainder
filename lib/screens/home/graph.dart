@@ -30,11 +30,13 @@ class _GraphViewState extends State<GraphView> {
     var chartWidgetMonth = SingleChildScrollView(
       reverse: true,
       child: Padding(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(8.0),
         child: SizedBox(
           child: charts.BarChart(
             getGraph(_showMonthGraph),
             animate: true,
+            domainAxis: charts.OrdinalAxisSpec(
+                renderSpec: charts.SmallTickRendererSpec(labelRotation: 60)),
             defaultRenderer: new charts.BarRendererConfig(
                 groupingType: charts.BarGroupingType.stacked,
                 strokeWidthPx: 2.0),
@@ -45,7 +47,69 @@ class _GraphViewState extends State<GraphView> {
       ),
       scrollDirection: Axis.horizontal,
     );
-    return _showMonthGraph ? chartWidgetMonth : chartWidget;
+    var colorMappingDeatail = Container(
+      height: 100.0,
+      margin: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+      child: Column(
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              FlatButton.icon(
+                  padding: EdgeInsets.all(4.0),
+                  onPressed: null,
+                  icon:
+                      Icon(Icons.circle, color: Utils().getDrinkColor("water")),
+                  label: Text("Water")),
+              FlatButton.icon(
+                  padding: EdgeInsets.all(4.0),
+                  onPressed: null,
+                  icon:
+                      Icon(Icons.circle, color: Utils().getDrinkColor("soda")),
+                  label: Text("soda")),
+              FlatButton.icon(
+                  padding: EdgeInsets.all(4.0),
+                  onPressed: null,
+                  icon:
+                      Icon(Icons.circle, color: Utils().getDrinkColor("juice")),
+                  label: Text("juice")),
+            ],
+            mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FlatButton.icon(
+                  padding: EdgeInsets.all(4.0),
+                  onPressed: null,
+                  icon: Icon(Icons.circle, color: Utils().getDrinkColor("tea")),
+                  label: Text("Tea")),
+              FlatButton.icon(
+                  padding: EdgeInsets.all(4.0),
+                  onPressed: null,
+                  icon: Icon(Icons.circle,
+                      color: Utils().getDrinkColor("coffee")),
+                  label: Text("Coffee")),
+            ],
+          )
+        ],
+      ),
+    );
+    return _showMonthGraph
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              chartWidgetMonth,
+              colorMappingDeatail,
+            ],
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              chartWidget,
+              colorMappingDeatail,
+            ],
+          );
   }
 
   List<charts.Series<MlPerDay, String>> getGraph(bool _showMonthGraph) {

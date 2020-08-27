@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
+import 'package:water_recommender/screens/sleep/sleepPage.dart';
 import 'package:water_recommender/screens/wrapper.dart';
 import 'package:water_recommender/services/auth.dart';
 import 'package:water_recommender/services/utils.dart';
@@ -17,13 +19,17 @@ class MyApp extends StatelessWidget {
       providers: [
         StreamProvider<User>.value(
           value: AuthServices().user,
+          initialData: User(uid: "loading"),
         ),
         StreamProvider(create: (_) {
           return DataConnectivityService().connectivityStreamController.stream;
         })
       ],
       child: MaterialApp(
-        home: Wrapper(),
+        routes: {
+          '/': (context) => Wrapper(),
+          '/sleepPage': (context) => SleepPage()
+        },
       ),
     );
   }

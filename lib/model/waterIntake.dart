@@ -29,4 +29,13 @@ class WaterIntake {
   String json() {
     return jsonEncode(this);
   }
+
+  @override
+  String toString() {
+    String string = "amount: $amount" +
+        "time : $time " +
+        "drinkType : $drinkType " +
+        "calories : $calories";
+    return string;
+  }
 }

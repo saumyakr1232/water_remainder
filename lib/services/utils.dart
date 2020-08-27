@@ -1,36 +1,65 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
+import 'package:water_recommender/model/sleepData.dart';
 import 'package:water_recommender/model/waterIntake.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
 class Utils {
-  int getTotalIntakeTodayFromListOfIntakes(List<WaterIntake> intakes) {
+  final int sleepGoal;
+  Utils({this.sleepGoal});
+  static int _initialIntakeAmount = 0;
+  static int _initialSleepAmount = 0;
+
+  static void setAmount(int amount, bool isSleep) {
+    if (isSleep) {
+      _initialSleepAmount = amount;
+    }
+    _initialIntakeAmount = amount;
+  }
+
+  int getAmount(bool isSleep) {
+    if (isSleep) {
+      return _initialSleepAmount;
+    }
+    return _initialIntakeAmount;
+  }
+
+  int getTotalIntakeToday(List<WaterIntake> intakes, {String drinkType}) {
     int amount = 0;
-    if (intakes != null) {
+    if (intakes != null && drinkType == null) {
       for (WaterIntake intake in intakes) {
         amount += intake.amount;
       }
       return amount;
     }
-    return amount;
-  }
-
-  int getDrinkAmountIntakeToday(List<WaterIntake> intakes, String drinkType) {
-    int amount = 0;
-    if (intakes != null) {
+    if (intakes != null && drinkType != null) {
       for (WaterIntake intake
           in intakes.where((element) => element.drinkType == drinkType)) {
         amount += intake.amount;
       }
       return amount;
     }
+
     return amount;
   }
 
-  double getGoalAchievedPercent(List<WaterIntake> intakes, int goal) {
-    int amount = getTotalIntakeTodayFromListOfIntakes(intakes);
+  int getTotalSleepToday(List<SleepData> naps) {
+    int amount = 0;
+    if (naps != null) {
+      naps.forEach((element) {
+        amount += element.duration;
+      });
+      return amount;
+    }
+    return amount;
+  }
+
+  double getWaterGoalAchievedPercent(List<WaterIntake> intakes, int goal) {
+    int amount = getTotalIntakeToday(intakes);
     if (amount / goal < 1.0) {
       return amount / goal;
     }
@@ -38,7 +67,19 @@ class Utils {
     if (intakes == null) {
       return 0;
     }
-    return 1;
+    return 1.0;
+  }
+
+  double getSleepGoalAchievedPercent(List<SleepData> sleeps) {
+    int amount = getTotalSleepToday(sleeps);
+    if (amount / sleepGoal < 1.0) {
+      return amount / sleepGoal;
+    }
+
+    if (sleeps == null) {
+      return 0;
+    }
+    return 1.0;
   }
 
   double getAverageIntake(Map<String, List<WaterIntake>> allData) {
@@ -46,10 +87,23 @@ class Utils {
     int totalIntakeAmount = 0;
 
     for (List<WaterIntake> intakes in allData.values) {
-      totalIntakeAmount += getTotalIntakeTodayFromListOfIntakes(intakes);
+      totalIntakeAmount += getTotalIntakeToday(intakes);
     }
     if (totalDays != 0) {
       return (totalIntakeAmount / totalDays);
+    }
+    return 0;
+  }
+
+  double getAverageSleep(Map<String, List<SleepData>> allData) {
+    int totalDays = allData.values.length;
+    double totalSleepAmount = 0;
+
+    for (List<SleepData> sleeps in allData.values) {
+      totalSleepAmount += getTotalSleepToday(sleeps);
+    }
+    if (totalDays != 0) {
+      return (totalSleepAmount / totalDays);
     }
     return 0;
   }
@@ -73,7 +127,7 @@ class Utils {
     int totalDays = allData.length;
     double allTargeAchive = 0.0;
     for (List<WaterIntake> intakes in allData.values) {
-      allTargeAchive += getGoalAchievedPercent(intakes, goal);
+      allTargeAchive += getWaterGoalAchievedPercent(intakes, goal);
     }
     if (totalDays == 0) {
       return 0;
@@ -109,8 +163,8 @@ class Utils {
     List<MlPerDay> list = [];
     int days = forMonth ? 30 : 7;
     allData.forEach((key, value) {
-      list.add(MlPerDay(getDrinkAmountIntakeToday(value, drinkType), key,
-          _getDrinkColor(drinkType)));
+      list.add(MlPerDay(getTotalIntakeToday(value, drinkType: drinkType), key,
+          getDrinkColor(drinkType)));
     });
     int len = list.length;
     // print("length of list $len");
@@ -141,7 +195,77 @@ class Utils {
     }
   }
 
-  Color _getDrinkColor(String type) {
+  List<MinPerDay> listOfMinPerDay(
+      Map<String, List<SleepData>> allData, bool forMonth) {
+    List<MinPerDay> list = [];
+    int days = forMonth ? 30 : 7;
+    allData.forEach((key, value) {
+      list.add(MinPerDay(getTotalSleepToday(value), key));
+    });
+    int len = list.length;
+    // print("length of list $len");
+
+    if (len > days) {
+      return list.sublist(list.length - 7);
+    }
+    if (len < days) {
+      int j = days - len;
+      List<MinPerDay> updatedList = [];
+      updatedList.addAll(list);
+      for (int i = 0; i < j; i++) {
+        updatedList.add(MinPerDay(
+            0,
+            DateFormat("yyyy-MM-dd").format(DateTime(DateTime.now().year,
+                DateTime.now().month, DateTime.now().day - i - 1))));
+      }
+      updatedList.sort(
+          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+      // updatedList.forEach((element) {
+      //   print(element.date);
+      // });
+      return updatedList;
+    } else {
+      return list;
+    }
+  }
+
+  List<MinPerDay> listOfMinAwakePerDay(
+      Map<String, List<SleepData>> allData, bool forMonth) {
+    List<MinPerDay> list = [];
+    int days = forMonth ? 30 : 7;
+    allData.forEach((key, value) {
+      list.add(MinPerDay(getTotalSleepToday(value), key));
+    });
+    int len = list.length;
+    // print("length of list $len");
+
+    if (len > days) {
+      return list.sublist(list.length - 7);
+    }
+    if (len < days) {
+      int j = days - len;
+      List<MinPerDay> updatedList = [];
+      updatedList.addAll(list);
+      for (int i = 0; i < j; i++) {
+        updatedList.add(MinPerDay(
+            1440,
+            DateFormat("yyyy-MM-dd").format(DateTime(DateTime.now().year,
+                DateTime.now().month, DateTime.now().day - i - 1))));
+      }
+      updatedList.sort(
+          (a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+      // updatedList.forEach((element) {
+      //   print(element.date);
+      // });
+      return updatedList;
+    } else {
+      return list;
+    }
+  }
+
+  Color getDrinkColor(String type) {
     switch (type) {
       case "soda":
         {
@@ -189,3 +313,19 @@ class MlPerDay {
             r: color.red, g: color.green, b: color.blue, a: color.alpha);
 }
 // "${DateTime.now().year}-${DateTime.now().month.toString().length == 1 ? DateTime.now().month.toString().padLeft(2, '0') : DateTime.now().month}-${DateTime.now().day.toString().length == 1 ? (DateTime.now().day - i - 1).toString().padLeft(2, '0') : DateTime.now().day - i - 1}"
+
+class UniqueColorGenerator {
+  static Random random = new Random();
+  static Color getColor() {
+    return Color.fromARGB(
+        255, random.nextInt(255), random.nextInt(255), random.nextInt(255));
+  }
+}
+
+class MinPerDay {
+  final String date;
+  final int duration;
+  final Color color;
+
+  MinPerDay(this.duration, this.date, {this.color});
+}

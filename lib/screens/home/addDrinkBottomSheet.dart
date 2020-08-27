@@ -19,7 +19,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
   var _calories = 0;
   var amount = 0;
   var _drinkTypes = ["water", "tea", "coffee", "soda", 'juice'];
-  DateTime _time = DateTime.now();
+  TimeOfDay _time = TimeOfDay.now();
   Map<String, int> _caloriesContent = {
     "water": 0,
     "coffee": 10,
@@ -115,9 +115,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(showPicker(
-                  context: context,
-                  value: _time as TimeOfDay,
-                  onChange: _onTimeChanged));
+                  context: context, value: _time, onChange: _onTimeChanged));
             },
             child: Container(
               decoration: BoxDecoration(
@@ -269,7 +267,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
   }
 
   Future _updateData(User user) async {
-    return DatabaseService(uid: user.uid).addDailyData(WaterIntake(
+    return DatabaseService(uid: user.uid).addDailyWaterData(WaterIntake(
         amount: _currentCapacity,
         time: "${DateFormat.Hms().format(DateTime.now())}",
         drinkType: _selectedDrinkType,
@@ -291,7 +289,7 @@ class _RecordDrinkPageState extends State<RecordDrinkPage> {
 
   void _onTimeChanged(TimeOfDay newTime) {
     setState(() {
-      _time = newTime as DateTime;
+      _time = newTime;
     });
   }
 }

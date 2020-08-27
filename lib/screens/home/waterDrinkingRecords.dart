@@ -121,7 +121,7 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
                       ),
                     )
             ],
-            leading: _isEditModeOn
+            leading: _isEditModeOn && sizeOfIntakesList != 0
                 ? _canShowSelectAll
                     ? FlatButton(
                         onPressed: () {
@@ -192,27 +192,32 @@ class _WaterRecordPageState extends State<WaterRecordPage> {
                   onPressed: () async {
                     print(_selectedForEdit);
                     print(intakes.length);
-                    List<WaterIntake> updatedIntake = [];
+                    List<WaterIntake> intakesToRemove = [];
                     List<bool> updatedSelectedForEdit = [];
-                    setState(() {
-                      sizeOfIntakesList = intakes.length;
-                      for (var i = 0; i < intakes.length; i++) {
-                        print("value outside  $i");
-                        if (!_selectedForEdit[i]) {
-                          print("value of $i");
-                          updatedIntake.add(intakes[i]);
-                          updatedSelectedForEdit.add(_selectedForEdit[i]);
-                        }
+
+                    sizeOfIntakesList = intakes.length;
+                    for (var i = 0; i < intakes.length; i++) {
+                      print("value outside  $i");
+                      if (_selectedForEdit[i]) {
+                        print("value of $i");
+                        intakesToRemove.add(intakes[i]);
+                      } else {
+                        updatedSelectedForEdit.add(_selectedForEdit[i]);
                       }
-                    });
-                    print(intakes.length);
-                    print("$updatedSelectedForEdit vs old $_selectedForEdit");
-                    await DatabaseService(uid: user.uid)
-                        .updateDailyData(updatedIntake);
+                    }
+
                     setState(() {
                       _selectedForEdit = updatedSelectedForEdit;
-                      intakes = updatedIntake;
+                      intakesToRemove.forEach((element) {
+                        intakes.remove(element);
+                      });
                     });
+
+                    print(intakes.length);
+                    print(intakesToRemove);
+                    print("$updatedSelectedForEdit vs old $_selectedForEdit");
+                    await DatabaseService(uid: user.uid)
+                        .removeDailyDrinkData(intakesToRemove);
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(

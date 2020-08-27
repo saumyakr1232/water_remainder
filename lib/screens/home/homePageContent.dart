@@ -4,12 +4,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:liquid_progress_indicator/liquid_progress_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:water_recommender/model/sleepData.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/model/waterIntake.dart';
 import 'package:water_recommender/screens/home/graph.dart';
 import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
+import '../commonWidgits.dart';
 import 'addDrinkBottomSheet.dart';
 import 'package:intl/intl.dart';
 
@@ -19,23 +21,7 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  int amount = 0;
   bool _showMonthGraph = false;
-  Future setAmount(int intake) async {
-    while (amount < intake) {
-      setState(() {
-        amount += 1;
-      });
-
-      await Future.delayed(Duration(microseconds: 5000));
-    }
-    while (intake < amount) {
-      setState(() {
-        amount -= 1;
-      });
-      await Future.delayed(Duration(microseconds: 500));
-    }
-  }
 
   List<bool> isSelected = [true, false];
 
@@ -44,8 +30,10 @@ class _HomePageContentState extends State<HomePageContent> {
 
   @override
   Widget build(BuildContext context) {
+//    print("Called from _homePageContentState");
     var dataConnectionStatus = Provider.of<DataConnectionStatus>(context);
-    var allData = Provider.of<Map<String, List<WaterIntake>>>(context);
+    var allSleepData = Provider.of<Map<String, List<SleepData>>>(context);
+    var allWaterData = Provider.of<Map<String, List<WaterIntake>>>(context);
 
     UserData userData = Provider.of<UserData>(context) ??
         UserData(goal: 0, name: "new user", uid: "");
@@ -67,14 +55,13 @@ class _HomePageContentState extends State<HomePageContent> {
     final List<WaterIntake> intakes = Provider.of<List<WaterIntake>>(context);
     setState(() {
       percentGoalAchieved =
-          Utils().getGoalAchievedPercent(intakes, userData.goal);
-      _avgWaterIntake = Utils().getAverageIntake(allData).round();
-      _avgFreqIntake = Utils().getFrequencyOfIntakePerDay(allData).round();
+          Utils().getWaterGoalAchievedPercent(intakes, userData.goal);
+      _avgWaterIntake = Utils().getAverageIntake(allWaterData).round();
+      _avgFreqIntake = Utils().getFrequencyOfIntakePerDay(allWaterData).round();
       _targetAchiveRate =
-          (Utils().getTargetAchievementRate(allData, userData.goal) * 100)
+          (Utils().getTargetAchievementRate(allWaterData, userData.goal) * 100)
               .round();
     });
-    setAmount(Utils().getTotalIntakeTodayFromListOfIntakes(intakes));
 
     var children2 = [
       LiquidLinearProgressIndicator(
@@ -110,17 +97,18 @@ class _HomePageContentState extends State<HomePageContent> {
             ],
             mainAxisAlignment: MainAxisAlignment.center,
           ),
-          Text(
-            amount.toString(),
-            style: TextStyle(color: Colors.indigo.shade800, fontSize: 90.0),
-          ),
+          AmountCounter(false),
           Row(
             children: [
               FlatButton(
                 child: Text(
                     "${(percentGoalAchieved * 100).round()} % completed",
                     style: TextStyle(fontWeight: FontWeight.normal)),
-                onPressed: () {},
+                onPressed: () {
+                  allSleepData.forEach((key, value) {
+                    print("$key : $value");
+                  });
+                },
                 padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 6.0),
               ),
               FlatButton(
@@ -136,28 +124,19 @@ class _HomePageContentState extends State<HomePageContent> {
                   )
                 ]),
                 padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 6.0),
-              )
+              ),
             ],
             mainAxisAlignment: MainAxisAlignment.center,
           ),
           SizedBox(
             height: 80.0,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              buildClipOval(50, dataConnectionStatus),
-              buildClipOval(150, dataConnectionStatus),
-              buildClipOval(200, dataConnectionStatus),
-              buildClipOval(250, dataConnectionStatus),
-              buildClipOval(300, dataConnectionStatus)
-            ],
-          ),
+          Cups()
         ],
       ),
     ];
 
-    return  Container(
+    return Container(
       child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         SizedBox(
           height: MediaQuery.of(context).size.height / 2,
@@ -203,7 +182,17 @@ class _HomePageContentState extends State<HomePageContent> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("Today's water drinking records"),
+                              InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) =>
+                                                WaterRecordPage(
+                                                  intakes: intakes,
+                                                )));
+                                  },
+                                  child:
+                                      Text("Today's water drinking records")),
                               IconButton(
                                 icon: Icon(
                                   Icons.arrow_forward_ios,
@@ -355,7 +344,10 @@ class _HomePageContentState extends State<HomePageContent> {
                     ],
                   ),
                 ),
-                Provider.value(child: GraphView(), value: _showMonthGraph,),
+                Provider.value(
+                  child: GraphView(),
+                  value: _showMonthGraph,
+                ),
               ],
             ),
           ),
@@ -410,60 +402,69 @@ class _HomePageContentState extends State<HomePageContent> {
         }
     }
   }
+}
 
-  Widget buildClipOval(int capacity, DataConnectionStatus connectionStatus) {
-    var user = Provider.of<User>(context);
-    var allData = Provider.of<Map<String, List<WaterIntake>>>(context);
-    return _isUpdating && connectionStatus == DataConnectionStatus.connected
-        ? CircularProgressIndicator(
-            backgroundColor: Colors.white,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo.shade600),
-          )
-        : Opacity(
-            opacity: 0.8,
-            child: GestureDetector(
-              onTap: () async {
-                setState(() {
-                  _isUpdating = true;
-                });
-                print(allData);
-                await DatabaseService(uid: user.uid).addDailyData(WaterIntake(
-                    amount: capacity,
-                    time: "${DateFormat.Hms().format(DateTime.now())}",
-                    drinkType: "water",
-                    calories: 0));
-                setState(() {
-                  _isUpdating = false;
-                });
-              },
-              child: Card(
-                color: Colors.white,
-                elevation: 8.0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(30.0))),
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        SimpleLineIcons.drop,
-                        color: Colors.indigo.shade500,
-                        size: 16.0,
-                      ),
-                      Text(
-                        capacity.toString(),
-                        style: TextStyle(
-                            color: Colors.indigo.shade500,
-                            fontWeight: FontWeight.normal,
-                            fontSize: 12.0),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+class Cups extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+//    print("Called from Cups");
+    final User user = Provider.of<User>(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        buildClipOval(50, user),
+        buildClipOval(150, user),
+        buildClipOval(200, user),
+        buildClipOval(250, user),
+        buildClipOval(300, user)
+      ],
+    );
+  }
+
+  Widget buildClipOval(int capacity, User user) {
+    return Opacity(
+      opacity: 0.8,
+      child: GestureDetector(
+        onTap: () {
+          DatabaseService(uid: user.uid).addDailyWaterData(
+            WaterIntake(
+                amount: capacity,
+                time: "${DateFormat.Hms().format(DateTime.now())}",
+                drinkType: "water",
+                calories: 0),
           );
+//          DatabaseService(uid: user.uid).addDailySleepData(SleepData(
+//              duration: 120,
+//              startTime: "${DateFormat.Hms().format(DateTime.now())}"));
+        },
+        child: Card(
+          color: Colors.white,
+          elevation: 8.0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(30.0))),
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(
+                  SimpleLineIcons.drop,
+                  color: Colors.indigo.shade500,
+                  size: 16.0,
+                ),
+                Text(
+                  capacity.toString(),
+                  style: TextStyle(
+                      color: Colors.indigo.shade500,
+                      fontWeight: FontWeight.normal,
+                      fontSize: 12.0),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
