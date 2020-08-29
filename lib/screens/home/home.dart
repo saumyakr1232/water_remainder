@@ -5,7 +5,6 @@ import 'package:water_recommender/screens/home/homePageContent.dart';
 import 'package:provider/provider.dart';
 import 'package:water_recommender/model/user.dart';
 import 'package:water_recommender/screens/sleep/sleepPage.dart';
-
 import 'package:water_recommender/services/auth.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
@@ -20,6 +19,7 @@ class Home extends StatelessWidget {
       providers: [
         StreamProvider.value(
           value: DatabaseService(uid: user.uid).userData,
+          initialData: UserData(goal: 0, name: "new user", uid: ""),
         ),
         StreamProvider.value(
           value: DatabaseService(uid: user.uid).dailyIntake,

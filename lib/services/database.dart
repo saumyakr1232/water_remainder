@@ -24,7 +24,7 @@ class DatabaseService {
     return await userDataCollections.document(uid).setData(<String, dynamic>{
       'name': name,
       'goal': goal,
-    }).catchError((e) => print(e));
+    }, merge: true).catchError((e) => print(e));
   }
 
   Future removeDailyDrinkData(List<WaterIntake> waterIntakes) async {

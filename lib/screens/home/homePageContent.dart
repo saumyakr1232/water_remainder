@@ -10,7 +10,7 @@ import 'package:water_recommender/screens/home/graph.dart';
 import 'package:water_recommender/screens/home/waterDrinkingRecords.dart';
 import 'package:water_recommender/services/database.dart';
 import 'package:water_recommender/services/utils.dart';
-import 'package:water_recommender/shared/prefs.dart';
+import 'package:water_recommender/shared/constants.dart';
 import '../commonWidgets.dart';
 import 'addDrinkBottomSheet.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +21,70 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
+  int _avgWaterIntake;
+  int _avgFreqIntake;
+  int _targetAchieveRate;
+  double percentGoalAchieved;
+  UserData userData;
+  List<Widget> firstChildren = [];
+
+  Future<void> _showModifyWaterGoalDialog(BuildContext context) async {
+    // var _controller = TextEditingController(text:"${userData.goal}");
+    int newGoal = userData.goal;
+    return showDialog<void>(
+        context: context,
+        builder: (
+          BuildContext context,
+        ) {
+          return AlertDialog(
+            title: Text("Daily target"),
+            content: TextFormField(
+              autofocus: true,
+              decoration: textInputDecoration.copyWith(
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.indigo, width: 2.0),
+                ),
+              ),
+              cursorColor: Colors.indigo,
+              textAlignVertical: TextAlignVertical.bottom,
+              initialValue: "${userData.goal}",
+              onChanged: (value) {
+                newGoal = int.parse(value);
+                print(newGoal);
+              },
+              keyboardType: TextInputType.numberWithOptions(
+                  signed: false, decimal: false),
+            ),
+            actions: [
+              FlatButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Cancel"),
+              ),
+              FlatButton(
+                onPressed: () async {
+                  print(newGoal);
+                  Navigator.pop(context);
+                  await DatabaseService(uid: userData.uid)
+                      .updateUserData(userData.name, newGoal);
+                },
+                child: Text("Ok"),
+              )
+            ],
+          );
+        });
+  }
+
+  void _showRecordDrinkSheet() {
+    showModalBottomSheet(
+        enableDrag: false,
+        context: context,
+        builder: (context) {
+          return Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+              child: RecordDrinkPage());
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     print("called build ");
@@ -29,23 +93,8 @@ class _HomePageContentState extends State<HomePageContent> {
 //    var dataConnectionStatus = Provider.of<DataConnectionStatus>(context);
     var allSleepData = Provider.of<Map<String, List<SleepData>>>(context);
     var allWaterData = Provider.of<Map<String, List<WaterIntake>>>(context);
-
-    UserData userData = Provider.of<UserData>(context) ??
-        UserData(goal: 0, name: "new user", uid: "");
-    int _avgWaterIntake;
-    int _avgFreqIntake;
-    int _targetAchiveRate;
-    double percentGoalAchieved;
-    void _showRecordDringkSheet() {
-      showModalBottomSheet(
-          enableDrag: false,
-          context: context,
-          builder: (context) {
-            return Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-                child: RecordDrinkPage());
-          });
-    }
+    userData = Provider.of<UserData>(context) ??
+        UserData(goal: 0, name: "new user", uid: ""); // TODO: fix this
 
     final List<WaterIntake> intakes = Provider.of<List<WaterIntake>>(context);
 
@@ -53,11 +102,12 @@ class _HomePageContentState extends State<HomePageContent> {
         Utils().getWaterGoalAchievedPercent(intakes, userData.goal);
     _avgWaterIntake = Utils().getAverageIntake(allWaterData).round();
     _avgFreqIntake = Utils().getFrequencyOfIntakePerDay(allWaterData).round();
-    _targetAchiveRate =
+    _targetAchieveRate =
         (Utils().getTargetAchievementRate(allWaterData, userData.goal) * 100)
             .round();
 
-    var children2 = [
+    // This widget will cover the half of the screen
+    firstChildren = [
       LiquidLinearProgressIndicator(
         value: percentGoalAchieved,
         direction: Axis.vertical,
@@ -73,18 +123,12 @@ class _HomePageContentState extends State<HomePageContent> {
                   child: Container(
                     child: Row(
                       children: [
-                        Icon(Icons.report,
-                            size: 18.0, color: Colors.indigo.shade700),
-                        SizedBox(width: 4.0),
                         Text(
                           "Drink some Water ${userData.name.toUpperCase()}",
                           style: TextStyle(
                               color: Colors.indigo.shade600,
                               fontWeight: FontWeight.normal),
                         ),
-                        SizedBox(width: 8.0),
-                        Icon(Icons.arrow_forward_ios,
-                            size: 15.0, color: Colors.indigo.shade600)
                       ],
                     ),
                   )),
@@ -99,14 +143,14 @@ class _HomePageContentState extends State<HomePageContent> {
                     "${(percentGoalAchieved * 100).round()} % completed",
                     style: TextStyle(fontWeight: FontWeight.normal)),
                 onPressed: () {
-                  allSleepData.forEach((key, value) {
-                    print("$key : $value");
-                  });
+                  _showModifyWaterGoalDialog(context);
                 },
                 padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 6.0),
               ),
               FlatButton(
-                onPressed: () {},
+                onPressed: () {
+                  _showModifyWaterGoalDialog(context);
+                },
                 child: Row(children: [
                   Text(
                     "Goal ${userData.goal} ml",
@@ -129,12 +173,11 @@ class _HomePageContentState extends State<HomePageContent> {
         ],
       ),
     ];
-
     return Container(
       child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: Stack(children: children2),
+          child: Stack(children: firstChildren),
         ),
 
         SizedBox(
@@ -148,7 +191,8 @@ class _HomePageContentState extends State<HomePageContent> {
             child: Column(
               children: [
                 FlatButton(
-                  onPressed: _showRecordDringkSheet,
+                  height: 35.0,
+                  onPressed: _showRecordDrinkSheet,
                   child: Text(
                     "Record drink",
                     style: TextStyle(
@@ -228,7 +272,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 SizedBox(
                   height: 10.0,
                 ),
-                SizedBox(height: 40.0, child: CustomToggleButton()),
+                SizedBox(height: 35.0, child: CustomToggleButton()),
                 SizedBox(
                   height: 10.0,
                 ),
@@ -237,26 +281,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              "$_avgWaterIntake",
-                              style: TextStyle(
-                                  fontSize: 36.0,
-                                  fontWeight: FontWeight.normal),
-                            ),
-                            Text("ml/days",
-                                textAlign: TextAlign.left,
-                                style:
-                                    TextStyle(fontWeight: FontWeight.normal)),
-                            Text(
-                              "Average water \nintake",
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
+                        flex: 1,
                         child: Column(
                           children: [
                             Row(
@@ -281,12 +306,34 @@ class _HomePageContentState extends State<HomePageContent> {
                         ),
                       ),
                       Expanded(
+                        flex: 1,
+                        child: Column(
+                          children: [
+                            Text(
+                              "$_avgWaterIntake",
+                              style: TextStyle(
+                                  fontSize: 36.0,
+                                  fontWeight: FontWeight.normal),
+                            ),
+                            Text("ml/days",
+                                textAlign: TextAlign.left,
+                                style:
+                                    TextStyle(fontWeight: FontWeight.normal)),
+                            Text(
+                              "Average water \nintake",
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
                         child: Column(
                           children: [
                             Row(
                               children: [
                                 Text(
-                                  "$_targetAchiveRate",
+                                  "$_targetAchieveRate",
                                   style: TextStyle(
                                       fontSize: 36.0,
                                       fontWeight: FontWeight.normal),
@@ -298,7 +345,7 @@ class _HomePageContentState extends State<HomePageContent> {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                             ),
                             Text(
-                              "Target \nachievement rate",
+                              "Target \nachievement \nrate",
                               style: TextStyle(color: Colors.grey.shade600),
                             ),
                           ],
@@ -308,7 +355,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     ],
                   ),
                 ),
-                GraphView(),
+                const GraphView(),
               ],
             ),
           ),

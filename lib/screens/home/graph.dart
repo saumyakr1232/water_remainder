@@ -6,21 +6,17 @@ import 'package:water_recommender/services/utils.dart';
 import 'package:intl/intl.dart';
 import 'package:water_recommender/shared/prefs.dart';
 
-class GraphView extends StatefulWidget {
-  @override
-  _GraphViewState createState() => _GraphViewState();
-}
-
-class _GraphViewState extends State<GraphView> {
+class GraphView extends StatelessWidget {
+  const GraphView();
   @override
   Widget build(BuildContext context) {
+    print("Graph build");
     var prefs = Provider.of<PrefNotifier>(context);
-
     var chartWidget = Padding(
       padding: EdgeInsets.all(20.0),
       child: SizedBox(
         child: charts.BarChart(
-          getGraph(prefs.showWaterDataGraphForMonth),
+          getGraph(prefs.showWaterDataGraphForMonth, context),
           animate: true,
           defaultRenderer: new charts.BarRendererConfig(
               groupingType: charts.BarGroupingType.stacked, strokeWidthPx: 2.0),
@@ -34,7 +30,7 @@ class _GraphViewState extends State<GraphView> {
         padding: EdgeInsets.all(8.0),
         child: SizedBox(
           child: charts.BarChart(
-            getGraph(prefs.showWaterDataGraphForMonth),
+            getGraph(prefs.showWaterDataGraphForMonth, context),
             animate: true,
             domainAxis: charts.OrdinalAxisSpec(
                 renderSpec: charts.SmallTickRendererSpec(labelRotation: 60)),
@@ -113,7 +109,8 @@ class _GraphViewState extends State<GraphView> {
           );
   }
 
-  List<charts.Series<MlPerDay, String>> getGraph(bool _showMonthGraph) {
+  List<charts.Series<MlPerDay, String>> getGraph(
+      bool _showMonthGraph, BuildContext context) {
     var allData = Provider.of<Map<String, List<WaterIntake>>>(context);
     var waterDataWeek = Utils().listOfMlPerDay(allData, "water", false);
     var waterDataMonth = Utils().listOfMlPerDay(allData, "water", true);

@@ -100,37 +100,40 @@ class _ListOfDrinksState extends State<ListOfDrinks> {
             child: Slidable(
               actionPane: SlidableBehindActionPane(),
               secondaryActions: [
-                IconSlideAction(
-                  caption: 'Delete',
-                  color: Colors.redAccent,
-                  icon: Icons.delete,
-                  onTap: () {
-                    recentlyDeleted = intakes[index];
-                    DatabaseService(uid: user.uid)
-                        .removeDailyDrinkData([intakes[index]]);
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                        content: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                              "${intakes[index].amount} ml ${intakes[index].drinkType.toUpperCase()} removed"),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: FlatButton(
-                              onPressed: () {
-                                DatabaseService(uid: user.uid)
-                                    .addDailyWaterData(recentlyDeleted);
-                              },
-                              child: Text(
-                                "Undo",
-                                style: TextStyle(color: Colors.lightGreen),
-                              ),
-                            ))
-                      ],
-                    )));
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical:4.0),
+                  child: IconSlideAction(
+                    caption: 'Delete',
+                    color: Colors.redAccent,
+                    icon: Icons.delete,
+                    onTap: () {
+                      recentlyDeleted = intakes[index];
+                      DatabaseService(uid: user.uid)
+                          .removeDailyDrinkData([intakes[index]]);
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                                "${intakes[index].amount} ml ${intakes[index].drinkType.toUpperCase()} removed"),
+                          ),
+                          Expanded(
+                              flex: 1,
+                              child: FlatButton(
+                                onPressed: () {
+                                  DatabaseService(uid: user.uid)
+                                      .addDailyWaterData(recentlyDeleted);
+                                },
+                                child: Text(
+                                  "Undo",
+                                  style: TextStyle(color: Colors.lightGreen),
+                                ),
+                              ))
+                        ],
+                      )));
+                    },
+                  ),
                 )
               ],
               key: UniqueKey(),
